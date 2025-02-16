@@ -1,5 +1,34 @@
+#include <fstream>
 #include <iostream>
+#include <stdexcept>
 
-int main(int argc, char **argv) {
-    std::cout << "args " << (argc > 1 ? argv[1] : "<no arg>") << " " << (argc > 2 ? argv[2] : "<no arg>") << std::endl;
+#include "image.h"
+#include "raytracer.h"
+#include "scene.h"
+
+
+int main(int argc, char **argv) try {
+    if (argc < 3) {
+        std::cerr << "Too few arguments: expected 2, got " << argc - 1
+                  << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    Scene scene;
+    {
+        std::ifstream in((argv[1]));
+        scene = Scene::parse(in);
+    }
+    Image img(scene.camera.width, scene.camera.height, scene.bg_color);
+
+    run_raytracer(scene, img);
+
+    {
+        std::ofstream out((argv[2]));
+        img.write(out);
+    }
+
+} catch (std::runtime_error &err) {
+    std::cerr << err.what() << std::endl;
+    return EXIT_FAILURE;
 }
