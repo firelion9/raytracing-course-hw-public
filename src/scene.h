@@ -68,8 +68,8 @@ struct Scene {
                 in >> res.objects.back().rotation;
             } else if (buf == "COLOR") {
                 auto &color = res.objects.back().color;
-                in >> color.r >> color.g >> color.b;
-                color.a = 1.0;
+                in >> color.r() >> color.g() >> color.b();
+                color.a() = 1.0;
             } else {
                 throw std::runtime_error(
                     "Unknow command while parsing scene: " + buf);
