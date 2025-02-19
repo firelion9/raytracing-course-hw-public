@@ -26,7 +26,7 @@ struct Camera {
 struct Scene {
     geometry::color3 bg_color;
     Camera camera;
-    std::vector<geometry::Shape> objects;
+    std::vector<geometry::Object> objects;
 
     static inline Scene parse(std::istream &in) {
         Scene res;
@@ -54,14 +54,17 @@ struct Scene {
             } else if (buf == "NEW_PRIMITIVE") {
                 res.objects.emplace_back();
             } else if (buf == "PLANE") {
-                res.objects.back().type = geometry::ShapeType::PLANE;
-                in >> res.objects.back().prop;
+                geometry::vec3 prop;
+                in >> prop;
+                res.objects.back().shape = geometry::plane{prop};
             } else if (buf == "ELLIPSOID") {
-                res.objects.back().type = geometry::ShapeType::ELLIPSOID;
-                in >> res.objects.back().prop;
+                geometry::vec3 prop;
+                in >> prop;
+                res.objects.back().shape = geometry::ellipsoid{prop};
             } else if (buf == "BOX") {
-                res.objects.back().type = geometry::ShapeType::BOX;
-                in >> res.objects.back().prop;
+                geometry::vec3 prop;
+                in >> prop;
+                res.objects.back().shape = geometry::box{prop};
             } else if (buf == "POSITION") {
                 in >> res.objects.back().position;
             } else if (buf == "ROTATION") {

@@ -4,6 +4,7 @@
 #include <array>
 #include <cmath>
 #include <iostream>
+#include <variant>
 
 namespace geometry {
 #include "generated/vectors.generated.inline.h"
@@ -125,16 +126,26 @@ enum ShapeType {
     BOX = 2,
 };
 
-struct Shape {
+struct plane {
+    vec3 normal;
+};
+
+struct ellipsoid {
+    vec3 radius;
+};
+
+struct box {
+    vec3 half_size;
+};
+
+using shape = std::variant<plane, ellipsoid, box>;
+
+struct Object {
     color4 color = {0, 0, 0, 1};
     quaternion rotation = quaternion(0, 0, 0, 1);
     vec3 position;
-
-    vec3 prop;
-
-    ShapeType type = PLANE;
-
-    inline virtual ~Shape() = default;
+    
+    geometry::shape shape; 
 };
 } // namespace geometry
 
