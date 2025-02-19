@@ -71,8 +71,7 @@ struct Scene {
                 in >> color.r() >> color.g() >> color.b();
                 color.a() = 1.0;
             } else {
-                throw std::runtime_error(
-                    "Unknow command while parsing scene: " + buf);
+                std::cerr << "Unknow command while parsing scene: " << buf << "\n";
             }
         }
 
