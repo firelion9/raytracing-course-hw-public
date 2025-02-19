@@ -2,12 +2,14 @@
 #define IMAGE_H
 
 #include "geometry.h"
+#include <algorithm>
 #include <array>
+#include <cstdint>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <cstdint>
+
 
 struct Image {
     int width, height;
@@ -35,17 +37,20 @@ struct Image {
         }
     }
 
-    inline geometry::color3& at(int x, int y) {
-        return data[x + y * width];
-    }
+    inline geometry::color3 &at(int x, int y) { return data[x + y * width]; }
 
   private:
+    static inline uint8_t convert_channel(float x) {
+        return static_cast<uint8_t>(
+            std::round(std::clamp(x * 255, 0.0f, 255.0f)));
+    }
+
     static inline std::array<uint8_t, 3>
     convert_color(const geometry::color3 &clr) {
         return {
-            static_cast<uint8_t>(clr.r() * 255),
-            static_cast<uint8_t>(clr.g() * 255),
-            static_cast<uint8_t>(clr.b() * 255),
+            convert_channel(clr.r()),
+            convert_channel(clr.g()),
+            convert_channel(clr.b()),
         };
     }
 };
