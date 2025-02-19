@@ -72,6 +72,7 @@ struct Scene {
                 color.a() = 1.0;
             } else {
                 std::cerr << "Unknow command while parsing scene: " << buf << "\n";
+                std::getline(in, buf); // consume arguments
             }
         }
 

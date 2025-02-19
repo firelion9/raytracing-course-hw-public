@@ -24,7 +24,7 @@ int main(int argc, char **argv) try {
     run_raytracer(scene, img);
 
     {
-        std::ofstream out((argv[2]));
+        std::ofstream out(argv[2], std::ios::binary);
         img.write(out);
     }
 
