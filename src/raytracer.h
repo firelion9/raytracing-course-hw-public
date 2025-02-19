@@ -7,9 +7,8 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <optional>
 #include <ostream>
-#include <stdexcept>
-#include <vector>
 #include <variant>
 
 template <size_t capacity, class T> struct small_vector {
@@ -36,13 +35,13 @@ struct ray_intersection_info {
     const geometry::Object *obj;
 };
 
-using intersection_vec = small_vector<2, float>;
-using ray_trace_res = small_vector<1, ray_intersection_info>;
+using intersection_res = std::optional<float>;
+using ray_trace_res = std::optional<ray_intersection_info>;
 
 #define push_t(t)                                                              \
     do {                                                                       \
-        if (t >= 0)                                                            \
-            res.push(t);                                                       \
+        if (t >= 0 && (!res.has_value() || t < *res))                          \
+            res = t;                                                           \
     } while (false)
 
 static inline std::ostream &operator<<(std::ostream &out,
@@ -55,22 +54,21 @@ static inline std::ostream &operator<<(std::ostream &out,
     return out << v.start << "-" << v.dir << "->";
 }
 
-static inline intersection_vec
-intersect_ray_obj(const geometry::ray &ray, const geometry::plane &obj) {
-    intersection_vec res;
+static inline intersection_res intersect_ray_obj(const geometry::ray &ray,
+                                                 const geometry::plane &obj) {
+    intersection_res res;
 
-    float t =
-        -geometry::dot(ray.start, obj.normal) / geometry::dot(ray.dir, obj.normal);
+    float t = -geometry::dot(ray.start, obj.normal) /
+              geometry::dot(ray.dir, obj.normal);
 
     push_t(t);
 
     return res;
 }
 
-static inline intersection_vec
-intersect_ray_obj(const geometry::ray &ray,
-                        const geometry::ellipsoid &obj) {
-    intersection_vec res;
+static inline intersection_res
+intersect_ray_obj(const geometry::ray &ray, const geometry::ellipsoid &obj) {
+    intersection_res res;
 
     float a = dot(ray.dir / obj.radius, ray.dir / obj.radius);
     float hb = dot(ray.start / obj.radius, ray.dir / obj.radius);
@@ -98,9 +96,9 @@ static inline float min_component(const vec_type &vec) {
     return *std::min_element(vec.val.begin(), vec.val.end());
 }
 
-static inline intersection_vec
-intersect_ray_obj(const geometry::ray &ray, const geometry::box &box) {
-    intersection_vec res;
+static inline intersection_res intersect_ray_obj(const geometry::ray &ray,
+                                                 const geometry::box &box) {
+    intersection_res res;
 
     auto intrs1 = (-box.half_size - ray.start) / ray.dir;
     auto intrs2 = (box.half_size - ray.start) / ray.dir;
@@ -116,18 +114,20 @@ intersect_ray_obj(const geometry::ray &ray, const geometry::box &box) {
     return res;
 }
 
-static inline intersection_vec
-intersect_unbiased(const geometry::ray &ray, const geometry::Object &obj) {
-    intersection_vec res;
+static inline intersection_res intersect_unbiased(const geometry::ray &ray,
+                                                  const geometry::Object &obj) {
+    intersection_res res;
 
-    return std::visit([&ray](const auto &shape) { return intersect_ray_obj(ray, shape); }, obj.shape);
+    return std::visit(
+        [&ray](const auto &shape) { return intersect_ray_obj(ray, shape); },
+        obj.shape);
 }
 
-static inline intersection_vec intersect(const geometry::ray &ray,
+static inline intersection_res intersect(const geometry::ray &ray,
                                          const geometry::Object &obj) {
     geometry::quaternion rot = obj.rotation.conj();
-    return intersect_unbiased(
-        {(ray.start - obj.position) * rot, ray.dir * rot}, obj);
+    return intersect_unbiased({(ray.start - obj.position) * rot, ray.dir * rot},
+                              obj);
 }
 
 static inline geometry::ray gen_ray(const Camera &camera, int x, int y) {
@@ -142,14 +142,14 @@ static inline geometry::ray gen_ray(const Camera &camera, int x, int y) {
 
 static inline void append_intersection(ray_trace_res &res,
                                        const geometry::Object &obj,
-                                       const intersection_vec &intersections) {
-    if (intersections.size == 0)
+                                       const intersection_res &intersection) {
+    if (!intersection.has_value())
         return;
 
-    if (res.size == 0) {
-        res.push({intersections[0], &obj});
-    } else if (res[0].t > intersections[0]) {
-        res[0] = {intersections[0], &obj};
+    if (!res.has_value()) {
+        res = {*intersection, &obj};
+    } else if (res->t > *intersection) {
+        res = {*intersection, &obj};
     }
 }
 
@@ -167,8 +167,8 @@ static inline geometry::color4 cast_ray(const Scene &scene,
         append_intersection(trace_res, shape, intersect(ray, shape));
     }
 
-    return trace_res.size == 0 ? geometry::color4(0, 0, 0, 0)
-                               : trace_res[0].obj->color;
+    return trace_res.has_value() ? trace_res->obj->color
+                                 : geometry::color4(0, 0, 0, 0);
 }
 
 inline void run_raytracer(const Scene &scene, Image &image) {
