@@ -54,9 +54,7 @@ struct quaternion {
 
     [[nodiscard]] vec3 v() const { return {a(), b(), c()}; }
 
-    [[nodiscard]] quaternion conj() const {
-        return quaternion{-v(), w()};
-    }
+    [[nodiscard]] quaternion conj() const { return quaternion{-v(), w()}; }
 
     [[nodiscard]] quaternion inv() const { return conj() / value.len(); }
 };
@@ -140,12 +138,39 @@ struct box {
 
 using shape = std::variant<plane, ellipsoid, box>;
 
+struct diffuse {};
+
+struct metallic {};
+
+struct dielectric {
+    float ior = 0;
+};
+
+using material = std::variant<diffuse, metallic, dielectric>;
+
 struct Object {
-    color4 color = {0, 0, 0, 1};
-    quaternion rotation = quaternion(0, 0, 0, 1);
     vec3 position;
-    
-    geometry::shape shape; 
+    quaternion rotation = quaternion(0, 0, 0, 1);
+    color4 color = {0, 0, 0, 1};
+
+    geometry::shape shape;
+    geometry::material material;
+};
+
+struct directed_light {
+    vec3 direction;
+};
+
+struct point_light {
+    vec3 position;
+    vec3 attenuation;
+};
+
+using light = std::variant<directed_light, point_light>;
+
+struct LightSource {
+    color3 intensity{1, 1, 1};
+    geometry::light light;
 };
 } // namespace geometry
 
