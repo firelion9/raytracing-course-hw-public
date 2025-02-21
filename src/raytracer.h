@@ -27,15 +27,14 @@ struct ray_intersection_info {
 using intersection_res = std::optional<float>;
 using ray_cast_res = std::optional<ray_intersection_info>;
 
-[[nodiscard]]
-static inline geometry::color3
+[[nodiscard]] constexpr static inline geometry::color3
 trace_ray(const Scene &scene, const geometry::ray &ray, unsigned max_depth);
 
-template <class Num> [[nodiscard]] inline constexpr Num pow2(Num x) {
+template <class Num> [[nodiscard]] constexpr inline Num pow2(Num x) {
     return x * x;
 }
 
-template <size_t p, class Num> [[nodiscard]] inline constexpr Num pow(Num x) {
+template <size_t p, class Num> [[nodiscard]] constexpr inline Num pow(Num x) {
     if constexpr (p == 0) {
         return 1;
     }
@@ -62,10 +61,9 @@ static inline std::ostream &operator<<(std::ostream &out,
     return out << v.start << "-" << v.dir << "->";
 }
 
-[[nodiscard]]
-static inline intersection_res intersect_ray_obj(const geometry::ray &ray,
-                                                 const geometry::plane &obj,
-                                                 float min_dst) {
+[[nodiscard]] constexpr static inline intersection_res
+intersect_ray_obj(const geometry::ray &ray, const geometry::plane &obj,
+                  float min_dst) {
     intersection_res res;
 
     float t = -geometry::dot(ray.start, obj.normal) /
@@ -76,10 +74,9 @@ static inline intersection_res intersect_ray_obj(const geometry::ray &ray,
     return res;
 }
 
-[[nodiscard]]
-static inline intersection_res intersect_ray_obj(const geometry::ray &ray,
-                                                 const geometry::ellipsoid &obj,
-                                                 float min_dst) {
+[[nodiscard]] constexpr static inline intersection_res
+intersect_ray_obj(const geometry::ray &ray, const geometry::ellipsoid &obj,
+                  float min_dst) {
     intersection_res res;
 
     float a = dot(ray.dir / obj.radius, ray.dir / obj.radius);
@@ -89,8 +86,6 @@ static inline intersection_res intersect_ray_obj(const geometry::ray &ray,
 
     float t1 = (-hb - hd) / a;
     float t2 = (-hb + hd) / a;
-    if (t1 > t2)
-        std::swap(t1, t2);
 
     push_t(t1, min_dst);
     push_t(t2, min_dst);
@@ -99,21 +94,18 @@ static inline intersection_res intersect_ray_obj(const geometry::ray &ray,
 }
 
 template <class vec_type>
-[[nodiscard]]
-static inline float max_component(const vec_type &vec) {
+[[nodiscard]] constexpr static inline float max_component(const vec_type &vec) {
     return *std::max_element(vec.val.begin(), vec.val.end());
 }
 
 template <class vec_type>
-[[nodiscard]]
-static inline float min_component(const vec_type &vec) {
+[[nodiscard]] constexpr static inline float min_component(const vec_type &vec) {
     return *std::min_element(vec.val.begin(), vec.val.end());
 }
 
-[[nodiscard]]
-static inline intersection_res intersect_ray_obj(const geometry::ray &ray,
-                                                 const geometry::box &box,
-                                                 float min_dst) {
+[[nodiscard]] constexpr static inline intersection_res
+intersect_ray_obj(const geometry::ray &ray, const geometry::box &box,
+                  float min_dst) {
     intersection_res res;
 
     auto intrs1 = (-box.half_size - ray.start) / ray.dir;
@@ -130,10 +122,9 @@ static inline intersection_res intersect_ray_obj(const geometry::ray &ray,
     return res;
 }
 
-[[nodiscard]]
-static inline intersection_res intersect_unbiased(const geometry::ray &ray,
-                                                  const geometry::Object &obj,
-                                                  float min_dst) {
+[[nodiscard]] constexpr static inline intersection_res
+intersect_unbiased(const geometry::ray &ray, const geometry::Object &obj,
+                   float min_dst) {
     return std::visit(
         [&ray, min_dst](const auto &shape) {
             return intersect_ray_obj(ray, shape, min_dst);
@@ -141,17 +132,16 @@ static inline intersection_res intersect_unbiased(const geometry::ray &ray,
         obj.shape);
 }
 
-[[nodiscard]]
-static inline intersection_res intersect(const geometry::ray &ray,
-                                         const geometry::Object &obj,
-                                         float min_dst) {
+[[nodiscard]] constexpr static inline intersection_res
+intersect(const geometry::ray &ray, const geometry::Object &obj,
+          float min_dst) {
     geometry::quaternion rot = obj.rotation.conj();
     return intersect_unbiased({(ray.start - obj.position) * rot, ray.dir * rot},
                               obj, min_dst);
 }
 
-[[nodiscard]]
-static inline geometry::ray gen_ray(const Camera &camera, int x, int y) {
+[[nodiscard]] constexpr static inline geometry::ray
+gen_ray(const Camera &camera, int x, int y) {
     auto dir = norm((2 * (x + 0.5) / camera.width - 1) * tan(camera.fov_x / 2) *
                         camera.right -
                     (2 * (y + 0.5) / camera.height - 1) *
@@ -169,17 +159,15 @@ static inline void update_intersection(ray_cast_res &res,
     if (!intersection.has_value() || *intersection > max_dst)
         return;
 
-    auto pos = ray.at(*intersection);
-    auto normal = obj.normal_at(pos);
-
     if (!res.has_value() || res->t > *intersection) {
+        auto pos = ray.at(*intersection);
+        auto normal = obj.normal_at(pos);
         auto is_inside = geometry::dot(normal, ray.dir) > 0;
         res = {is_inside ? -normal : normal, *intersection, &obj, is_inside};
     }
 }
 
-[[nodiscard]]
-static inline ray_cast_res
+[[nodiscard]] static inline ray_cast_res
 cast_ray(const Scene &scene, const geometry::ray &ray,
          float max_dst = std::numeric_limits<float>::infinity(),
          float min_dst = EPS) {
@@ -193,8 +181,7 @@ cast_ray(const Scene &scene, const geometry::ray &ray,
     return res;
 }
 
-[[nodiscard]]
-static inline geometry::color3
+[[nodiscard]] static inline geometry::color3
 light_at_from(const Scene &scene, const geometry::vec3 &pos,
               const geometry::vec3 &normal,
               const geometry::color3 &light_intensity,
@@ -211,8 +198,7 @@ light_at_from(const Scene &scene, const geometry::vec3 &pos,
     }
 }
 
-[[nodiscard]]
-static inline geometry::color3
+[[nodiscard]] static inline geometry::color3
 light_at_from(const Scene &scene, const geometry::vec3 &pos,
               const geometry::vec3 &normal,
               const geometry::color3 &light_intensity,
@@ -225,8 +211,7 @@ light_at_from(const Scene &scene, const geometry::vec3 &pos,
     }
 }
 
-[[nodiscard]]
-static inline geometry::color3
+[[nodiscard]] static inline geometry::color3
 light_at_from(const Scene &scene, const geometry::vec3 &pos,
               const geometry::vec3 &normal,
               const geometry::LightSource &light_source) {
@@ -253,8 +238,7 @@ shade(const Scene &scene, const geometry::ray &ray,
     return res * intersection_info.obj->color;
 }
 
-[[nodiscard]]
-static inline geometry::color3
+[[nodiscard]] constexpr static inline geometry::color3
 shade(const Scene &scene, const geometry::ray &ray,
       const ray_intersection_info &intersection_info, unsigned max_depth,
       geometry::metallic) {
@@ -266,39 +250,41 @@ shade(const Scene &scene, const geometry::ray &ray,
     return res * intersection_info.obj->color;
 }
 
-[[nodiscard]]
-static inline geometry::color3
+[[nodiscard]] constexpr static inline geometry::color3
 shade(const Scene &scene, const geometry::ray &ray,
       const ray_intersection_info &intersection_info, unsigned max_depth,
       geometry::dielectric material) {
     auto pos = ray.at(intersection_info.t);
 
     float r0 = pow2((1 - material.ior) / (1 + material.ior));
-    float r = r0 + (1 - r0) * pow<5>(1 - dot(intersection_info.normal, -ray.dir));
+    float r =
+        r0 + (1 - r0) * pow<5>(1 - dot(intersection_info.normal, -ray.dir));
 
     geometry::color3 res =
-        trace_ray(scene, {pos, geometry::reflect(intersection_info.normal, ray.dir)}, max_depth) *
+        trace_ray(scene,
+                  {pos, geometry::reflect(intersection_info.normal, ray.dir)},
+                  max_depth) *
         r;
 
     float eta = intersection_info.is_inside ? material.ior : 1 / material.ior;
-    auto sin_theta2_2 = eta * eta * (1 - pow2(dot(intersection_info.normal, -ray.dir)));
+    auto sin_theta2_2 =
+        eta * eta * (1 - pow2(dot(intersection_info.normal, -ray.dir)));
     if (sin_theta2_2 <= 1) {
         auto cos_theta2 = std::sqrt(1 - sin_theta2_2);
-        auto dir1 =
-            geometry::norm(eta * ray.dir +
-                           (eta * dot(intersection_info.normal, -ray.dir) - cos_theta2) * intersection_info.normal);
+        auto dir1 = geometry::norm(
+            eta * ray.dir +
+            (eta * dot(intersection_info.normal, -ray.dir) - cos_theta2) *
+                intersection_info.normal);
 
         res += (1 - r) * trace_ray(scene, {pos, dir1}, max_depth) *
-                            (intersection_info.is_inside
-                                 ? geometry::color3{1, 1, 1}
-                                 : intersection_info.obj->color);
+               (intersection_info.is_inside ? geometry::color3{1, 1, 1}
+                                            : intersection_info.obj->color);
     }
 
     return res;
 }
 
-[[nodiscard]]
-static inline geometry::color3
+[[nodiscard]] constexpr static inline geometry::color3
 shade(const Scene &scene, const geometry::ray &ray,
       const ray_intersection_info &intersection_info, unsigned max_depth) {
     return std::visit(
@@ -308,8 +294,7 @@ shade(const Scene &scene, const geometry::ray &ray,
         intersection_info.obj->material);
 }
 
-[[nodiscard]]
-static inline geometry::color3
+[[nodiscard]] constexpr static inline geometry::color3
 trace_ray(const Scene &scene, const geometry::ray &ray, unsigned max_depth) {
     if (max_depth == 0) {
         return scene.bg_color;

@@ -3,123 +3,123 @@
 struct vec2 {
     std::array<float, 2> val;
 
-    [[nodiscard]] inline vec2(float x = 0, float y = 0) : val({x, y}) {}
-    [[nodiscard]] inline vec2(const vec2&) = default;
+    [[nodiscard]] constexpr inline vec2(float x = 0, float y = 0) : val({x, y}) {}
+    [[nodiscard]] constexpr inline vec2(const vec2&) = default;
     inline vec2& operator=(const vec2&) = default;
 
-    [[nodiscard]] inline float& x() {
+    [[nodiscard]] constexpr inline float& x() {
         return this->val[0];
     }
 
-    [[nodiscard]] inline const float& x() const{
+    [[nodiscard]] constexpr inline const float& x() const{
         return this->val[0];
     }
 
-    [[nodiscard]] inline float& y() {
+    [[nodiscard]] constexpr inline float& y() {
         return this->val[1];
     }
 
-    [[nodiscard]] inline const float& y() const{
+    [[nodiscard]] constexpr inline const float& y() const{
         return this->val[1];
     }
 
-    [[nodiscard]] inline vec2 xx() const {
+    [[nodiscard]] constexpr inline vec2 xx() const {
         return {this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec2 xy() const {
+    [[nodiscard]] constexpr inline vec2 xy() const {
         return {this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec2 yx() const {
+    [[nodiscard]] constexpr inline vec2 yx() const {
         return {this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec2 yy() const {
+    [[nodiscard]] constexpr inline vec2 yy() const {
         return {this->y(), this->y()};
     }
 
-    [[nodiscard]] inline float len2() const {
+    [[nodiscard]] constexpr inline float len2() const {
         return this->x() * this->x()+this->y() * this->y();
     }
 
-    [[nodiscard]] inline float len() const {
+    [[nodiscard]] constexpr inline float len() const {
         return std::sqrt(this->len2());
     }
 
-    [[nodiscard]] inline vec2 abs() const {
+    [[nodiscard]] constexpr inline vec2 abs() const {
         return {std::abs(this->x()), std::abs(this->y())};
     }
 
 };
 
-[[nodiscard]] inline vec2 operator+(const vec2& a, const vec2& b) {
+[[nodiscard]] constexpr inline vec2 operator+(const vec2& a, const vec2& b) {
     return {a.x() + b.x(), a.y() + b.y()};
 }
 
-[[nodiscard]] inline vec2 operator-(const vec2& a, const vec2& b) {
+[[nodiscard]] constexpr inline vec2 operator-(const vec2& a, const vec2& b) {
     return {a.x() - b.x(), a.y() - b.y()};
 }
 
-[[nodiscard]] inline vec2 operator*(const vec2& a, const vec2& b) {
+[[nodiscard]] constexpr inline vec2 operator*(const vec2& a, const vec2& b) {
     return {a.x() * b.x(), a.y() * b.y()};
 }
 
-[[nodiscard]] inline vec2 operator/(const vec2& a, const vec2& b) {
+[[nodiscard]] constexpr inline vec2 operator/(const vec2& a, const vec2& b) {
     return {a.x() / b.x(), a.y() / b.y()};
 }
 
-inline vec2& operator+=(vec2& a, const vec2& b) {
+constexpr inline vec2& operator+=(vec2& a, const vec2& b) {
     a.x() += b.x();
     a.y() += b.y();
     return a;
 }
 
-inline vec2& operator-=(vec2& a, const vec2& b) {
+constexpr inline vec2& operator-=(vec2& a, const vec2& b) {
     a.x() -= b.x();
     a.y() -= b.y();
     return a;
 }
 
-inline vec2& operator*=(vec2& a, const vec2& b) {
+constexpr inline vec2& operator*=(vec2& a, const vec2& b) {
     a.x() *= b.x();
     a.y() *= b.y();
     return a;
 }
 
-inline vec2& operator/=(vec2& a, const vec2& b) {
+constexpr inline vec2& operator/=(vec2& a, const vec2& b) {
     a.x() /= b.x();
     a.y() /= b.y();
     return a;
 }
 
-[[nodiscard]] inline vec2 operator-(const vec2& vec) {
+[[nodiscard]] constexpr inline vec2 operator-(const vec2& vec) {
     return {-vec.x(), -vec.y()};
 }
 
-[[nodiscard]] inline vec2 operator*(const vec2& vec, float scl) {
+[[nodiscard]] constexpr inline vec2 operator*(const vec2& vec, float scl) {
     return {vec.x() * scl, vec.y() * scl};
 }
 
-[[nodiscard]] inline vec2 operator*(float scl, const vec2& vec) {
+[[nodiscard]] constexpr inline vec2 operator*(float scl, const vec2& vec) {
     return {scl * vec.x() , scl * vec.y() };
 }
 
-[[nodiscard]] inline vec2 operator/(const vec2& vec, float scl) {
+[[nodiscard]] constexpr inline vec2 operator/(const vec2& vec, float scl) {
     return {vec.x() / scl, vec.y() / scl};
 }
 
-[[nodiscard]] inline vec2 operator/(float scl, const vec2& vec) {
+[[nodiscard]] constexpr inline vec2 operator/(float scl, const vec2& vec) {
     return {scl / vec.x() , scl / vec.y() };
 }
 
-inline vec2& operator*=(vec2& vec, float scl) {
+constexpr inline vec2& operator*=(vec2& vec, float scl) {
     vec.x() *= scl;
     vec.y() *= scl;
 return vec;
 }
 
-inline vec2& operator/=(vec2& vec, float scl) {
+constexpr inline vec2& operator/=(vec2& vec, float scl) {
     vec.x() /= scl;
     vec.y() /= scl;
 return vec;
@@ -129,14 +129,14 @@ inline std::istream& operator>>(std::istream& stream, vec2& vec) {
     return stream >> vec.x() >> vec.y();
 }
 
-[[nodiscard]] inline float dot(const vec2 &a, const vec2 &b) {
+[[nodiscard]] constexpr inline float dot(const vec2 &a, const vec2 &b) {
     return a.x() * b.x() + a.y() * b.y();
 }
-[[nodiscard]] inline vec2 min(const vec2& a, const vec2& b) {
+[[nodiscard]] constexpr inline vec2 min(const vec2& a, const vec2& b) {
     return {std::min(a.x(), b.x()), std::min(a.y(), b.y())};
 }
 
-[[nodiscard]] inline vec2 max(const vec2& a, const vec2& b) {
+[[nodiscard]] constexpr inline vec2 max(const vec2& a, const vec2& b) {
     return {std::max(a.x(), b.x()), std::max(a.y(), b.y())};
 }
 
@@ -144,268 +144,268 @@ inline std::istream& operator>>(std::istream& stream, vec2& vec) {
 struct vec3 {
     std::array<float, 3> val;
 
-    [[nodiscard]] inline vec3(float x = 0, float y = 0, float z = 0) : val({x, y, z}) {}
-    [[nodiscard]] inline vec3(const vec3&) = default;
+    [[nodiscard]] constexpr inline vec3(float x = 0, float y = 0, float z = 0) : val({x, y, z}) {}
+    [[nodiscard]] constexpr inline vec3(const vec3&) = default;
     inline vec3& operator=(const vec3&) = default;
-    [[nodiscard]] inline vec3(vec2 p0, float p1) : vec3{p0.val[0], p0.val[1], p1} {}
+    [[nodiscard]] constexpr inline vec3(vec2 p0, float p1) : vec3{p0.val[0], p0.val[1], p1} {}
 
-    [[nodiscard]] inline vec3(float p0, vec2 p1) : vec3{p0, p1.val[0], p1.val[1]} {}
+    [[nodiscard]] constexpr inline vec3(float p0, vec2 p1) : vec3{p0, p1.val[0], p1.val[1]} {}
 
 
-    [[nodiscard]] inline float& x() {
+    [[nodiscard]] constexpr inline float& x() {
         return this->val[0];
     }
 
-    [[nodiscard]] inline const float& x() const{
+    [[nodiscard]] constexpr inline const float& x() const{
         return this->val[0];
     }
 
-    [[nodiscard]] inline float& y() {
+    [[nodiscard]] constexpr inline float& y() {
         return this->val[1];
     }
 
-    [[nodiscard]] inline const float& y() const{
+    [[nodiscard]] constexpr inline const float& y() const{
         return this->val[1];
     }
 
-    [[nodiscard]] inline float& z() {
+    [[nodiscard]] constexpr inline float& z() {
         return this->val[2];
     }
 
-    [[nodiscard]] inline const float& z() const{
+    [[nodiscard]] constexpr inline const float& z() const{
         return this->val[2];
     }
 
-    [[nodiscard]] inline vec2 xx() const {
+    [[nodiscard]] constexpr inline vec2 xx() const {
         return {this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec2 xy() const {
+    [[nodiscard]] constexpr inline vec2 xy() const {
         return {this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec2 xz() const {
+    [[nodiscard]] constexpr inline vec2 xz() const {
         return {this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec2 yx() const {
+    [[nodiscard]] constexpr inline vec2 yx() const {
         return {this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec2 yy() const {
+    [[nodiscard]] constexpr inline vec2 yy() const {
         return {this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec2 yz() const {
+    [[nodiscard]] constexpr inline vec2 yz() const {
         return {this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec2 zx() const {
+    [[nodiscard]] constexpr inline vec2 zx() const {
         return {this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec2 zy() const {
+    [[nodiscard]] constexpr inline vec2 zy() const {
         return {this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec2 zz() const {
+    [[nodiscard]] constexpr inline vec2 zz() const {
         return {this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 xxx() const {
+    [[nodiscard]] constexpr inline vec3 xxx() const {
         return {this->x(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 xxy() const {
+    [[nodiscard]] constexpr inline vec3 xxy() const {
         return {this->x(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 xxz() const {
+    [[nodiscard]] constexpr inline vec3 xxz() const {
         return {this->x(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 xyx() const {
+    [[nodiscard]] constexpr inline vec3 xyx() const {
         return {this->x(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 xyy() const {
+    [[nodiscard]] constexpr inline vec3 xyy() const {
         return {this->x(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 xyz() const {
+    [[nodiscard]] constexpr inline vec3 xyz() const {
         return {this->x(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 xzx() const {
+    [[nodiscard]] constexpr inline vec3 xzx() const {
         return {this->x(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 xzy() const {
+    [[nodiscard]] constexpr inline vec3 xzy() const {
         return {this->x(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 xzz() const {
+    [[nodiscard]] constexpr inline vec3 xzz() const {
         return {this->x(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 yxx() const {
+    [[nodiscard]] constexpr inline vec3 yxx() const {
         return {this->y(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 yxy() const {
+    [[nodiscard]] constexpr inline vec3 yxy() const {
         return {this->y(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 yxz() const {
+    [[nodiscard]] constexpr inline vec3 yxz() const {
         return {this->y(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 yyx() const {
+    [[nodiscard]] constexpr inline vec3 yyx() const {
         return {this->y(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 yyy() const {
+    [[nodiscard]] constexpr inline vec3 yyy() const {
         return {this->y(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 yyz() const {
+    [[nodiscard]] constexpr inline vec3 yyz() const {
         return {this->y(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 yzx() const {
+    [[nodiscard]] constexpr inline vec3 yzx() const {
         return {this->y(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 yzy() const {
+    [[nodiscard]] constexpr inline vec3 yzy() const {
         return {this->y(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 yzz() const {
+    [[nodiscard]] constexpr inline vec3 yzz() const {
         return {this->y(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 zxx() const {
+    [[nodiscard]] constexpr inline vec3 zxx() const {
         return {this->z(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 zxy() const {
+    [[nodiscard]] constexpr inline vec3 zxy() const {
         return {this->z(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 zxz() const {
+    [[nodiscard]] constexpr inline vec3 zxz() const {
         return {this->z(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 zyx() const {
+    [[nodiscard]] constexpr inline vec3 zyx() const {
         return {this->z(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 zyy() const {
+    [[nodiscard]] constexpr inline vec3 zyy() const {
         return {this->z(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 zyz() const {
+    [[nodiscard]] constexpr inline vec3 zyz() const {
         return {this->z(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 zzx() const {
+    [[nodiscard]] constexpr inline vec3 zzx() const {
         return {this->z(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 zzy() const {
+    [[nodiscard]] constexpr inline vec3 zzy() const {
         return {this->z(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 zzz() const {
+    [[nodiscard]] constexpr inline vec3 zzz() const {
         return {this->z(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline float len2() const {
+    [[nodiscard]] constexpr inline float len2() const {
         return this->x() * this->x()+this->y() * this->y()+this->z() * this->z();
     }
 
-    [[nodiscard]] inline float len() const {
+    [[nodiscard]] constexpr inline float len() const {
         return std::sqrt(this->len2());
     }
 
-    [[nodiscard]] inline vec3 abs() const {
+    [[nodiscard]] constexpr inline vec3 abs() const {
         return {std::abs(this->x()), std::abs(this->y()), std::abs(this->z())};
     }
 
 };
 
-[[nodiscard]] inline vec3 operator+(const vec3& a, const vec3& b) {
+[[nodiscard]] constexpr inline vec3 operator+(const vec3& a, const vec3& b) {
     return {a.x() + b.x(), a.y() + b.y(), a.z() + b.z()};
 }
 
-[[nodiscard]] inline vec3 operator-(const vec3& a, const vec3& b) {
+[[nodiscard]] constexpr inline vec3 operator-(const vec3& a, const vec3& b) {
     return {a.x() - b.x(), a.y() - b.y(), a.z() - b.z()};
 }
 
-[[nodiscard]] inline vec3 operator*(const vec3& a, const vec3& b) {
+[[nodiscard]] constexpr inline vec3 operator*(const vec3& a, const vec3& b) {
     return {a.x() * b.x(), a.y() * b.y(), a.z() * b.z()};
 }
 
-[[nodiscard]] inline vec3 operator/(const vec3& a, const vec3& b) {
+[[nodiscard]] constexpr inline vec3 operator/(const vec3& a, const vec3& b) {
     return {a.x() / b.x(), a.y() / b.y(), a.z() / b.z()};
 }
 
-inline vec3& operator+=(vec3& a, const vec3& b) {
+constexpr inline vec3& operator+=(vec3& a, const vec3& b) {
     a.x() += b.x();
     a.y() += b.y();
     a.z() += b.z();
     return a;
 }
 
-inline vec3& operator-=(vec3& a, const vec3& b) {
+constexpr inline vec3& operator-=(vec3& a, const vec3& b) {
     a.x() -= b.x();
     a.y() -= b.y();
     a.z() -= b.z();
     return a;
 }
 
-inline vec3& operator*=(vec3& a, const vec3& b) {
+constexpr inline vec3& operator*=(vec3& a, const vec3& b) {
     a.x() *= b.x();
     a.y() *= b.y();
     a.z() *= b.z();
     return a;
 }
 
-inline vec3& operator/=(vec3& a, const vec3& b) {
+constexpr inline vec3& operator/=(vec3& a, const vec3& b) {
     a.x() /= b.x();
     a.y() /= b.y();
     a.z() /= b.z();
     return a;
 }
 
-[[nodiscard]] inline vec3 operator-(const vec3& vec) {
+[[nodiscard]] constexpr inline vec3 operator-(const vec3& vec) {
     return {-vec.x(), -vec.y(), -vec.z()};
 }
 
-[[nodiscard]] inline vec3 operator*(const vec3& vec, float scl) {
+[[nodiscard]] constexpr inline vec3 operator*(const vec3& vec, float scl) {
     return {vec.x() * scl, vec.y() * scl, vec.z() * scl};
 }
 
-[[nodiscard]] inline vec3 operator*(float scl, const vec3& vec) {
+[[nodiscard]] constexpr inline vec3 operator*(float scl, const vec3& vec) {
     return {scl * vec.x() , scl * vec.y() , scl * vec.z() };
 }
 
-[[nodiscard]] inline vec3 operator/(const vec3& vec, float scl) {
+[[nodiscard]] constexpr inline vec3 operator/(const vec3& vec, float scl) {
     return {vec.x() / scl, vec.y() / scl, vec.z() / scl};
 }
 
-[[nodiscard]] inline vec3 operator/(float scl, const vec3& vec) {
+[[nodiscard]] constexpr inline vec3 operator/(float scl, const vec3& vec) {
     return {scl / vec.x() , scl / vec.y() , scl / vec.z() };
 }
 
-inline vec3& operator*=(vec3& vec, float scl) {
+constexpr inline vec3& operator*=(vec3& vec, float scl) {
     vec.x() *= scl;
     vec.y() *= scl;
     vec.z() *= scl;
 return vec;
 }
 
-inline vec3& operator/=(vec3& vec, float scl) {
+constexpr inline vec3& operator/=(vec3& vec, float scl) {
     vec.x() /= scl;
     vec.y() /= scl;
     vec.z() /= scl;
@@ -416,14 +416,14 @@ inline std::istream& operator>>(std::istream& stream, vec3& vec) {
     return stream >> vec.x() >> vec.y() >> vec.z();
 }
 
-[[nodiscard]] inline float dot(const vec3 &a, const vec3 &b) {
+[[nodiscard]] constexpr inline float dot(const vec3 &a, const vec3 &b) {
     return a.x() * b.x() + a.y() * b.y() + a.z() * b.z();
 }
-[[nodiscard]] inline vec3 min(const vec3& a, const vec3& b) {
+[[nodiscard]] constexpr inline vec3 min(const vec3& a, const vec3& b) {
     return {std::min(a.x(), b.x()), std::min(a.y(), b.y()), std::min(a.z(), b.z())};
 }
 
-[[nodiscard]] inline vec3 max(const vec3& a, const vec3& b) {
+[[nodiscard]] constexpr inline vec3 max(const vec3& a, const vec3& b) {
     return {std::max(a.x(), b.x()), std::max(a.y(), b.y()), std::max(a.z(), b.z())};
 }
 
@@ -431,1429 +431,1429 @@ inline std::istream& operator>>(std::istream& stream, vec3& vec) {
 struct vec4 {
     std::array<float, 4> val;
 
-    [[nodiscard]] inline vec4(float x = 0, float y = 0, float z = 0, float w = 0) : val({x, y, z, w}) {}
-    [[nodiscard]] inline vec4(const vec4&) = default;
+    [[nodiscard]] constexpr inline vec4(float x = 0, float y = 0, float z = 0, float w = 0) : val({x, y, z, w}) {}
+    [[nodiscard]] constexpr inline vec4(const vec4&) = default;
     inline vec4& operator=(const vec4&) = default;
-    [[nodiscard]] inline vec4(vec2 p0, float p1, float p2) : vec4{p0.val[0], p0.val[1], p1, p2} {}
+    [[nodiscard]] constexpr inline vec4(vec2 p0, float p1, float p2) : vec4{p0.val[0], p0.val[1], p1, p2} {}
 
-    [[nodiscard]] inline vec4(float p0, vec2 p1, float p2) : vec4{p0, p1.val[0], p1.val[1], p2} {}
+    [[nodiscard]] constexpr inline vec4(float p0, vec2 p1, float p2) : vec4{p0, p1.val[0], p1.val[1], p2} {}
 
-    [[nodiscard]] inline vec4(vec3 p0, float p1) : vec4{p0.val[0], p0.val[1], p0.val[2], p1} {}
+    [[nodiscard]] constexpr inline vec4(vec3 p0, float p1) : vec4{p0.val[0], p0.val[1], p0.val[2], p1} {}
 
-    [[nodiscard]] inline vec4(float p0, float p1, vec2 p2) : vec4{p0, p1, p2.val[0], p2.val[1]} {}
+    [[nodiscard]] constexpr inline vec4(float p0, float p1, vec2 p2) : vec4{p0, p1, p2.val[0], p2.val[1]} {}
 
-    [[nodiscard]] inline vec4(vec2 p0, vec2 p1) : vec4{p0.val[0], p0.val[1], p1.val[0], p1.val[1]} {}
+    [[nodiscard]] constexpr inline vec4(vec2 p0, vec2 p1) : vec4{p0.val[0], p0.val[1], p1.val[0], p1.val[1]} {}
 
-    [[nodiscard]] inline vec4(float p0, vec3 p1) : vec4{p0, p1.val[0], p1.val[1], p1.val[2]} {}
+    [[nodiscard]] constexpr inline vec4(float p0, vec3 p1) : vec4{p0, p1.val[0], p1.val[1], p1.val[2]} {}
 
 
-    [[nodiscard]] inline float& x() {
+    [[nodiscard]] constexpr inline float& x() {
         return this->val[0];
     }
 
-    [[nodiscard]] inline const float& x() const{
+    [[nodiscard]] constexpr inline const float& x() const{
         return this->val[0];
     }
 
-    [[nodiscard]] inline float& y() {
+    [[nodiscard]] constexpr inline float& y() {
         return this->val[1];
     }
 
-    [[nodiscard]] inline const float& y() const{
+    [[nodiscard]] constexpr inline const float& y() const{
         return this->val[1];
     }
 
-    [[nodiscard]] inline float& z() {
+    [[nodiscard]] constexpr inline float& z() {
         return this->val[2];
     }
 
-    [[nodiscard]] inline const float& z() const{
+    [[nodiscard]] constexpr inline const float& z() const{
         return this->val[2];
     }
 
-    [[nodiscard]] inline float& w() {
+    [[nodiscard]] constexpr inline float& w() {
         return this->val[3];
     }
 
-    [[nodiscard]] inline const float& w() const{
+    [[nodiscard]] constexpr inline const float& w() const{
         return this->val[3];
     }
 
-    [[nodiscard]] inline vec2 xx() const {
+    [[nodiscard]] constexpr inline vec2 xx() const {
         return {this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec2 xy() const {
+    [[nodiscard]] constexpr inline vec2 xy() const {
         return {this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec2 xz() const {
+    [[nodiscard]] constexpr inline vec2 xz() const {
         return {this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec2 xw() const {
+    [[nodiscard]] constexpr inline vec2 xw() const {
         return {this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec2 yx() const {
+    [[nodiscard]] constexpr inline vec2 yx() const {
         return {this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec2 yy() const {
+    [[nodiscard]] constexpr inline vec2 yy() const {
         return {this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec2 yz() const {
+    [[nodiscard]] constexpr inline vec2 yz() const {
         return {this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec2 yw() const {
+    [[nodiscard]] constexpr inline vec2 yw() const {
         return {this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec2 zx() const {
+    [[nodiscard]] constexpr inline vec2 zx() const {
         return {this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec2 zy() const {
+    [[nodiscard]] constexpr inline vec2 zy() const {
         return {this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec2 zz() const {
+    [[nodiscard]] constexpr inline vec2 zz() const {
         return {this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec2 zw() const {
+    [[nodiscard]] constexpr inline vec2 zw() const {
         return {this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec2 wx() const {
+    [[nodiscard]] constexpr inline vec2 wx() const {
         return {this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec2 wy() const {
+    [[nodiscard]] constexpr inline vec2 wy() const {
         return {this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec2 wz() const {
+    [[nodiscard]] constexpr inline vec2 wz() const {
         return {this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec2 ww() const {
+    [[nodiscard]] constexpr inline vec2 ww() const {
         return {this->w(), this->w()};
     }
 
-    [[nodiscard]] inline vec3 xxx() const {
+    [[nodiscard]] constexpr inline vec3 xxx() const {
         return {this->x(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 xxy() const {
+    [[nodiscard]] constexpr inline vec3 xxy() const {
         return {this->x(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 xxz() const {
+    [[nodiscard]] constexpr inline vec3 xxz() const {
         return {this->x(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 xxw() const {
+    [[nodiscard]] constexpr inline vec3 xxw() const {
         return {this->x(), this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec3 xyx() const {
+    [[nodiscard]] constexpr inline vec3 xyx() const {
         return {this->x(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 xyy() const {
+    [[nodiscard]] constexpr inline vec3 xyy() const {
         return {this->x(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 xyz() const {
+    [[nodiscard]] constexpr inline vec3 xyz() const {
         return {this->x(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 xyw() const {
+    [[nodiscard]] constexpr inline vec3 xyw() const {
         return {this->x(), this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec3 xzx() const {
+    [[nodiscard]] constexpr inline vec3 xzx() const {
         return {this->x(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 xzy() const {
+    [[nodiscard]] constexpr inline vec3 xzy() const {
         return {this->x(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 xzz() const {
+    [[nodiscard]] constexpr inline vec3 xzz() const {
         return {this->x(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 xzw() const {
+    [[nodiscard]] constexpr inline vec3 xzw() const {
         return {this->x(), this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec3 xwx() const {
+    [[nodiscard]] constexpr inline vec3 xwx() const {
         return {this->x(), this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 xwy() const {
+    [[nodiscard]] constexpr inline vec3 xwy() const {
         return {this->x(), this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 xwz() const {
+    [[nodiscard]] constexpr inline vec3 xwz() const {
         return {this->x(), this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 xww() const {
+    [[nodiscard]] constexpr inline vec3 xww() const {
         return {this->x(), this->w(), this->w()};
     }
 
-    [[nodiscard]] inline vec3 yxx() const {
+    [[nodiscard]] constexpr inline vec3 yxx() const {
         return {this->y(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 yxy() const {
+    [[nodiscard]] constexpr inline vec3 yxy() const {
         return {this->y(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 yxz() const {
+    [[nodiscard]] constexpr inline vec3 yxz() const {
         return {this->y(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 yxw() const {
+    [[nodiscard]] constexpr inline vec3 yxw() const {
         return {this->y(), this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec3 yyx() const {
+    [[nodiscard]] constexpr inline vec3 yyx() const {
         return {this->y(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 yyy() const {
+    [[nodiscard]] constexpr inline vec3 yyy() const {
         return {this->y(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 yyz() const {
+    [[nodiscard]] constexpr inline vec3 yyz() const {
         return {this->y(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 yyw() const {
+    [[nodiscard]] constexpr inline vec3 yyw() const {
         return {this->y(), this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec3 yzx() const {
+    [[nodiscard]] constexpr inline vec3 yzx() const {
         return {this->y(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 yzy() const {
+    [[nodiscard]] constexpr inline vec3 yzy() const {
         return {this->y(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 yzz() const {
+    [[nodiscard]] constexpr inline vec3 yzz() const {
         return {this->y(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 yzw() const {
+    [[nodiscard]] constexpr inline vec3 yzw() const {
         return {this->y(), this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec3 ywx() const {
+    [[nodiscard]] constexpr inline vec3 ywx() const {
         return {this->y(), this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 ywy() const {
+    [[nodiscard]] constexpr inline vec3 ywy() const {
         return {this->y(), this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 ywz() const {
+    [[nodiscard]] constexpr inline vec3 ywz() const {
         return {this->y(), this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 yww() const {
+    [[nodiscard]] constexpr inline vec3 yww() const {
         return {this->y(), this->w(), this->w()};
     }
 
-    [[nodiscard]] inline vec3 zxx() const {
+    [[nodiscard]] constexpr inline vec3 zxx() const {
         return {this->z(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 zxy() const {
+    [[nodiscard]] constexpr inline vec3 zxy() const {
         return {this->z(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 zxz() const {
+    [[nodiscard]] constexpr inline vec3 zxz() const {
         return {this->z(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 zxw() const {
+    [[nodiscard]] constexpr inline vec3 zxw() const {
         return {this->z(), this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec3 zyx() const {
+    [[nodiscard]] constexpr inline vec3 zyx() const {
         return {this->z(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 zyy() const {
+    [[nodiscard]] constexpr inline vec3 zyy() const {
         return {this->z(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 zyz() const {
+    [[nodiscard]] constexpr inline vec3 zyz() const {
         return {this->z(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 zyw() const {
+    [[nodiscard]] constexpr inline vec3 zyw() const {
         return {this->z(), this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec3 zzx() const {
+    [[nodiscard]] constexpr inline vec3 zzx() const {
         return {this->z(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 zzy() const {
+    [[nodiscard]] constexpr inline vec3 zzy() const {
         return {this->z(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 zzz() const {
+    [[nodiscard]] constexpr inline vec3 zzz() const {
         return {this->z(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 zzw() const {
+    [[nodiscard]] constexpr inline vec3 zzw() const {
         return {this->z(), this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec3 zwx() const {
+    [[nodiscard]] constexpr inline vec3 zwx() const {
         return {this->z(), this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 zwy() const {
+    [[nodiscard]] constexpr inline vec3 zwy() const {
         return {this->z(), this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 zwz() const {
+    [[nodiscard]] constexpr inline vec3 zwz() const {
         return {this->z(), this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 zww() const {
+    [[nodiscard]] constexpr inline vec3 zww() const {
         return {this->z(), this->w(), this->w()};
     }
 
-    [[nodiscard]] inline vec3 wxx() const {
+    [[nodiscard]] constexpr inline vec3 wxx() const {
         return {this->w(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 wxy() const {
+    [[nodiscard]] constexpr inline vec3 wxy() const {
         return {this->w(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 wxz() const {
+    [[nodiscard]] constexpr inline vec3 wxz() const {
         return {this->w(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 wxw() const {
+    [[nodiscard]] constexpr inline vec3 wxw() const {
         return {this->w(), this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec3 wyx() const {
+    [[nodiscard]] constexpr inline vec3 wyx() const {
         return {this->w(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 wyy() const {
+    [[nodiscard]] constexpr inline vec3 wyy() const {
         return {this->w(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 wyz() const {
+    [[nodiscard]] constexpr inline vec3 wyz() const {
         return {this->w(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 wyw() const {
+    [[nodiscard]] constexpr inline vec3 wyw() const {
         return {this->w(), this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec3 wzx() const {
+    [[nodiscard]] constexpr inline vec3 wzx() const {
         return {this->w(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 wzy() const {
+    [[nodiscard]] constexpr inline vec3 wzy() const {
         return {this->w(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 wzz() const {
+    [[nodiscard]] constexpr inline vec3 wzz() const {
         return {this->w(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 wzw() const {
+    [[nodiscard]] constexpr inline vec3 wzw() const {
         return {this->w(), this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec3 wwx() const {
+    [[nodiscard]] constexpr inline vec3 wwx() const {
         return {this->w(), this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec3 wwy() const {
+    [[nodiscard]] constexpr inline vec3 wwy() const {
         return {this->w(), this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec3 wwz() const {
+    [[nodiscard]] constexpr inline vec3 wwz() const {
         return {this->w(), this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec3 www() const {
+    [[nodiscard]] constexpr inline vec3 www() const {
         return {this->w(), this->w(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 xxxx() const {
+    [[nodiscard]] constexpr inline vec4 xxxx() const {
         return {this->x(), this->x(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 xxxy() const {
+    [[nodiscard]] constexpr inline vec4 xxxy() const {
         return {this->x(), this->x(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 xxxz() const {
+    [[nodiscard]] constexpr inline vec4 xxxz() const {
         return {this->x(), this->x(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 xxxw() const {
+    [[nodiscard]] constexpr inline vec4 xxxw() const {
         return {this->x(), this->x(), this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 xxyx() const {
+    [[nodiscard]] constexpr inline vec4 xxyx() const {
         return {this->x(), this->x(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 xxyy() const {
+    [[nodiscard]] constexpr inline vec4 xxyy() const {
         return {this->x(), this->x(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 xxyz() const {
+    [[nodiscard]] constexpr inline vec4 xxyz() const {
         return {this->x(), this->x(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 xxyw() const {
+    [[nodiscard]] constexpr inline vec4 xxyw() const {
         return {this->x(), this->x(), this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 xxzx() const {
+    [[nodiscard]] constexpr inline vec4 xxzx() const {
         return {this->x(), this->x(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 xxzy() const {
+    [[nodiscard]] constexpr inline vec4 xxzy() const {
         return {this->x(), this->x(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 xxzz() const {
+    [[nodiscard]] constexpr inline vec4 xxzz() const {
         return {this->x(), this->x(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 xxzw() const {
+    [[nodiscard]] constexpr inline vec4 xxzw() const {
         return {this->x(), this->x(), this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 xxwx() const {
+    [[nodiscard]] constexpr inline vec4 xxwx() const {
         return {this->x(), this->x(), this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 xxwy() const {
+    [[nodiscard]] constexpr inline vec4 xxwy() const {
         return {this->x(), this->x(), this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 xxwz() const {
+    [[nodiscard]] constexpr inline vec4 xxwz() const {
         return {this->x(), this->x(), this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 xxww() const {
+    [[nodiscard]] constexpr inline vec4 xxww() const {
         return {this->x(), this->x(), this->w(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 xyxx() const {
+    [[nodiscard]] constexpr inline vec4 xyxx() const {
         return {this->x(), this->y(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 xyxy() const {
+    [[nodiscard]] constexpr inline vec4 xyxy() const {
         return {this->x(), this->y(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 xyxz() const {
+    [[nodiscard]] constexpr inline vec4 xyxz() const {
         return {this->x(), this->y(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 xyxw() const {
+    [[nodiscard]] constexpr inline vec4 xyxw() const {
         return {this->x(), this->y(), this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 xyyx() const {
+    [[nodiscard]] constexpr inline vec4 xyyx() const {
         return {this->x(), this->y(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 xyyy() const {
+    [[nodiscard]] constexpr inline vec4 xyyy() const {
         return {this->x(), this->y(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 xyyz() const {
+    [[nodiscard]] constexpr inline vec4 xyyz() const {
         return {this->x(), this->y(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 xyyw() const {
+    [[nodiscard]] constexpr inline vec4 xyyw() const {
         return {this->x(), this->y(), this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 xyzx() const {
+    [[nodiscard]] constexpr inline vec4 xyzx() const {
         return {this->x(), this->y(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 xyzy() const {
+    [[nodiscard]] constexpr inline vec4 xyzy() const {
         return {this->x(), this->y(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 xyzz() const {
+    [[nodiscard]] constexpr inline vec4 xyzz() const {
         return {this->x(), this->y(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 xyzw() const {
+    [[nodiscard]] constexpr inline vec4 xyzw() const {
         return {this->x(), this->y(), this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 xywx() const {
+    [[nodiscard]] constexpr inline vec4 xywx() const {
         return {this->x(), this->y(), this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 xywy() const {
+    [[nodiscard]] constexpr inline vec4 xywy() const {
         return {this->x(), this->y(), this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 xywz() const {
+    [[nodiscard]] constexpr inline vec4 xywz() const {
         return {this->x(), this->y(), this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 xyww() const {
+    [[nodiscard]] constexpr inline vec4 xyww() const {
         return {this->x(), this->y(), this->w(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 xzxx() const {
+    [[nodiscard]] constexpr inline vec4 xzxx() const {
         return {this->x(), this->z(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 xzxy() const {
+    [[nodiscard]] constexpr inline vec4 xzxy() const {
         return {this->x(), this->z(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 xzxz() const {
+    [[nodiscard]] constexpr inline vec4 xzxz() const {
         return {this->x(), this->z(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 xzxw() const {
+    [[nodiscard]] constexpr inline vec4 xzxw() const {
         return {this->x(), this->z(), this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 xzyx() const {
+    [[nodiscard]] constexpr inline vec4 xzyx() const {
         return {this->x(), this->z(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 xzyy() const {
+    [[nodiscard]] constexpr inline vec4 xzyy() const {
         return {this->x(), this->z(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 xzyz() const {
+    [[nodiscard]] constexpr inline vec4 xzyz() const {
         return {this->x(), this->z(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 xzyw() const {
+    [[nodiscard]] constexpr inline vec4 xzyw() const {
         return {this->x(), this->z(), this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 xzzx() const {
+    [[nodiscard]] constexpr inline vec4 xzzx() const {
         return {this->x(), this->z(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 xzzy() const {
+    [[nodiscard]] constexpr inline vec4 xzzy() const {
         return {this->x(), this->z(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 xzzz() const {
+    [[nodiscard]] constexpr inline vec4 xzzz() const {
         return {this->x(), this->z(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 xzzw() const {
+    [[nodiscard]] constexpr inline vec4 xzzw() const {
         return {this->x(), this->z(), this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 xzwx() const {
+    [[nodiscard]] constexpr inline vec4 xzwx() const {
         return {this->x(), this->z(), this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 xzwy() const {
+    [[nodiscard]] constexpr inline vec4 xzwy() const {
         return {this->x(), this->z(), this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 xzwz() const {
+    [[nodiscard]] constexpr inline vec4 xzwz() const {
         return {this->x(), this->z(), this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 xzww() const {
+    [[nodiscard]] constexpr inline vec4 xzww() const {
         return {this->x(), this->z(), this->w(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 xwxx() const {
+    [[nodiscard]] constexpr inline vec4 xwxx() const {
         return {this->x(), this->w(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 xwxy() const {
+    [[nodiscard]] constexpr inline vec4 xwxy() const {
         return {this->x(), this->w(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 xwxz() const {
+    [[nodiscard]] constexpr inline vec4 xwxz() const {
         return {this->x(), this->w(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 xwxw() const {
+    [[nodiscard]] constexpr inline vec4 xwxw() const {
         return {this->x(), this->w(), this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 xwyx() const {
+    [[nodiscard]] constexpr inline vec4 xwyx() const {
         return {this->x(), this->w(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 xwyy() const {
+    [[nodiscard]] constexpr inline vec4 xwyy() const {
         return {this->x(), this->w(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 xwyz() const {
+    [[nodiscard]] constexpr inline vec4 xwyz() const {
         return {this->x(), this->w(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 xwyw() const {
+    [[nodiscard]] constexpr inline vec4 xwyw() const {
         return {this->x(), this->w(), this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 xwzx() const {
+    [[nodiscard]] constexpr inline vec4 xwzx() const {
         return {this->x(), this->w(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 xwzy() const {
+    [[nodiscard]] constexpr inline vec4 xwzy() const {
         return {this->x(), this->w(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 xwzz() const {
+    [[nodiscard]] constexpr inline vec4 xwzz() const {
         return {this->x(), this->w(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 xwzw() const {
+    [[nodiscard]] constexpr inline vec4 xwzw() const {
         return {this->x(), this->w(), this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 xwwx() const {
+    [[nodiscard]] constexpr inline vec4 xwwx() const {
         return {this->x(), this->w(), this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 xwwy() const {
+    [[nodiscard]] constexpr inline vec4 xwwy() const {
         return {this->x(), this->w(), this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 xwwz() const {
+    [[nodiscard]] constexpr inline vec4 xwwz() const {
         return {this->x(), this->w(), this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 xwww() const {
+    [[nodiscard]] constexpr inline vec4 xwww() const {
         return {this->x(), this->w(), this->w(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 yxxx() const {
+    [[nodiscard]] constexpr inline vec4 yxxx() const {
         return {this->y(), this->x(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 yxxy() const {
+    [[nodiscard]] constexpr inline vec4 yxxy() const {
         return {this->y(), this->x(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 yxxz() const {
+    [[nodiscard]] constexpr inline vec4 yxxz() const {
         return {this->y(), this->x(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 yxxw() const {
+    [[nodiscard]] constexpr inline vec4 yxxw() const {
         return {this->y(), this->x(), this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 yxyx() const {
+    [[nodiscard]] constexpr inline vec4 yxyx() const {
         return {this->y(), this->x(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 yxyy() const {
+    [[nodiscard]] constexpr inline vec4 yxyy() const {
         return {this->y(), this->x(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 yxyz() const {
+    [[nodiscard]] constexpr inline vec4 yxyz() const {
         return {this->y(), this->x(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 yxyw() const {
+    [[nodiscard]] constexpr inline vec4 yxyw() const {
         return {this->y(), this->x(), this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 yxzx() const {
+    [[nodiscard]] constexpr inline vec4 yxzx() const {
         return {this->y(), this->x(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 yxzy() const {
+    [[nodiscard]] constexpr inline vec4 yxzy() const {
         return {this->y(), this->x(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 yxzz() const {
+    [[nodiscard]] constexpr inline vec4 yxzz() const {
         return {this->y(), this->x(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 yxzw() const {
+    [[nodiscard]] constexpr inline vec4 yxzw() const {
         return {this->y(), this->x(), this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 yxwx() const {
+    [[nodiscard]] constexpr inline vec4 yxwx() const {
         return {this->y(), this->x(), this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 yxwy() const {
+    [[nodiscard]] constexpr inline vec4 yxwy() const {
         return {this->y(), this->x(), this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 yxwz() const {
+    [[nodiscard]] constexpr inline vec4 yxwz() const {
         return {this->y(), this->x(), this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 yxww() const {
+    [[nodiscard]] constexpr inline vec4 yxww() const {
         return {this->y(), this->x(), this->w(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 yyxx() const {
+    [[nodiscard]] constexpr inline vec4 yyxx() const {
         return {this->y(), this->y(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 yyxy() const {
+    [[nodiscard]] constexpr inline vec4 yyxy() const {
         return {this->y(), this->y(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 yyxz() const {
+    [[nodiscard]] constexpr inline vec4 yyxz() const {
         return {this->y(), this->y(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 yyxw() const {
+    [[nodiscard]] constexpr inline vec4 yyxw() const {
         return {this->y(), this->y(), this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 yyyx() const {
+    [[nodiscard]] constexpr inline vec4 yyyx() const {
         return {this->y(), this->y(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 yyyy() const {
+    [[nodiscard]] constexpr inline vec4 yyyy() const {
         return {this->y(), this->y(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 yyyz() const {
+    [[nodiscard]] constexpr inline vec4 yyyz() const {
         return {this->y(), this->y(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 yyyw() const {
+    [[nodiscard]] constexpr inline vec4 yyyw() const {
         return {this->y(), this->y(), this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 yyzx() const {
+    [[nodiscard]] constexpr inline vec4 yyzx() const {
         return {this->y(), this->y(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 yyzy() const {
+    [[nodiscard]] constexpr inline vec4 yyzy() const {
         return {this->y(), this->y(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 yyzz() const {
+    [[nodiscard]] constexpr inline vec4 yyzz() const {
         return {this->y(), this->y(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 yyzw() const {
+    [[nodiscard]] constexpr inline vec4 yyzw() const {
         return {this->y(), this->y(), this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 yywx() const {
+    [[nodiscard]] constexpr inline vec4 yywx() const {
         return {this->y(), this->y(), this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 yywy() const {
+    [[nodiscard]] constexpr inline vec4 yywy() const {
         return {this->y(), this->y(), this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 yywz() const {
+    [[nodiscard]] constexpr inline vec4 yywz() const {
         return {this->y(), this->y(), this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 yyww() const {
+    [[nodiscard]] constexpr inline vec4 yyww() const {
         return {this->y(), this->y(), this->w(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 yzxx() const {
+    [[nodiscard]] constexpr inline vec4 yzxx() const {
         return {this->y(), this->z(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 yzxy() const {
+    [[nodiscard]] constexpr inline vec4 yzxy() const {
         return {this->y(), this->z(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 yzxz() const {
+    [[nodiscard]] constexpr inline vec4 yzxz() const {
         return {this->y(), this->z(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 yzxw() const {
+    [[nodiscard]] constexpr inline vec4 yzxw() const {
         return {this->y(), this->z(), this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 yzyx() const {
+    [[nodiscard]] constexpr inline vec4 yzyx() const {
         return {this->y(), this->z(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 yzyy() const {
+    [[nodiscard]] constexpr inline vec4 yzyy() const {
         return {this->y(), this->z(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 yzyz() const {
+    [[nodiscard]] constexpr inline vec4 yzyz() const {
         return {this->y(), this->z(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 yzyw() const {
+    [[nodiscard]] constexpr inline vec4 yzyw() const {
         return {this->y(), this->z(), this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 yzzx() const {
+    [[nodiscard]] constexpr inline vec4 yzzx() const {
         return {this->y(), this->z(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 yzzy() const {
+    [[nodiscard]] constexpr inline vec4 yzzy() const {
         return {this->y(), this->z(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 yzzz() const {
+    [[nodiscard]] constexpr inline vec4 yzzz() const {
         return {this->y(), this->z(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 yzzw() const {
+    [[nodiscard]] constexpr inline vec4 yzzw() const {
         return {this->y(), this->z(), this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 yzwx() const {
+    [[nodiscard]] constexpr inline vec4 yzwx() const {
         return {this->y(), this->z(), this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 yzwy() const {
+    [[nodiscard]] constexpr inline vec4 yzwy() const {
         return {this->y(), this->z(), this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 yzwz() const {
+    [[nodiscard]] constexpr inline vec4 yzwz() const {
         return {this->y(), this->z(), this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 yzww() const {
+    [[nodiscard]] constexpr inline vec4 yzww() const {
         return {this->y(), this->z(), this->w(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 ywxx() const {
+    [[nodiscard]] constexpr inline vec4 ywxx() const {
         return {this->y(), this->w(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 ywxy() const {
+    [[nodiscard]] constexpr inline vec4 ywxy() const {
         return {this->y(), this->w(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 ywxz() const {
+    [[nodiscard]] constexpr inline vec4 ywxz() const {
         return {this->y(), this->w(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 ywxw() const {
+    [[nodiscard]] constexpr inline vec4 ywxw() const {
         return {this->y(), this->w(), this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 ywyx() const {
+    [[nodiscard]] constexpr inline vec4 ywyx() const {
         return {this->y(), this->w(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 ywyy() const {
+    [[nodiscard]] constexpr inline vec4 ywyy() const {
         return {this->y(), this->w(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 ywyz() const {
+    [[nodiscard]] constexpr inline vec4 ywyz() const {
         return {this->y(), this->w(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 ywyw() const {
+    [[nodiscard]] constexpr inline vec4 ywyw() const {
         return {this->y(), this->w(), this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 ywzx() const {
+    [[nodiscard]] constexpr inline vec4 ywzx() const {
         return {this->y(), this->w(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 ywzy() const {
+    [[nodiscard]] constexpr inline vec4 ywzy() const {
         return {this->y(), this->w(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 ywzz() const {
+    [[nodiscard]] constexpr inline vec4 ywzz() const {
         return {this->y(), this->w(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 ywzw() const {
+    [[nodiscard]] constexpr inline vec4 ywzw() const {
         return {this->y(), this->w(), this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 ywwx() const {
+    [[nodiscard]] constexpr inline vec4 ywwx() const {
         return {this->y(), this->w(), this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 ywwy() const {
+    [[nodiscard]] constexpr inline vec4 ywwy() const {
         return {this->y(), this->w(), this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 ywwz() const {
+    [[nodiscard]] constexpr inline vec4 ywwz() const {
         return {this->y(), this->w(), this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 ywww() const {
+    [[nodiscard]] constexpr inline vec4 ywww() const {
         return {this->y(), this->w(), this->w(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 zxxx() const {
+    [[nodiscard]] constexpr inline vec4 zxxx() const {
         return {this->z(), this->x(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 zxxy() const {
+    [[nodiscard]] constexpr inline vec4 zxxy() const {
         return {this->z(), this->x(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 zxxz() const {
+    [[nodiscard]] constexpr inline vec4 zxxz() const {
         return {this->z(), this->x(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 zxxw() const {
+    [[nodiscard]] constexpr inline vec4 zxxw() const {
         return {this->z(), this->x(), this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 zxyx() const {
+    [[nodiscard]] constexpr inline vec4 zxyx() const {
         return {this->z(), this->x(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 zxyy() const {
+    [[nodiscard]] constexpr inline vec4 zxyy() const {
         return {this->z(), this->x(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 zxyz() const {
+    [[nodiscard]] constexpr inline vec4 zxyz() const {
         return {this->z(), this->x(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 zxyw() const {
+    [[nodiscard]] constexpr inline vec4 zxyw() const {
         return {this->z(), this->x(), this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 zxzx() const {
+    [[nodiscard]] constexpr inline vec4 zxzx() const {
         return {this->z(), this->x(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 zxzy() const {
+    [[nodiscard]] constexpr inline vec4 zxzy() const {
         return {this->z(), this->x(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 zxzz() const {
+    [[nodiscard]] constexpr inline vec4 zxzz() const {
         return {this->z(), this->x(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 zxzw() const {
+    [[nodiscard]] constexpr inline vec4 zxzw() const {
         return {this->z(), this->x(), this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 zxwx() const {
+    [[nodiscard]] constexpr inline vec4 zxwx() const {
         return {this->z(), this->x(), this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 zxwy() const {
+    [[nodiscard]] constexpr inline vec4 zxwy() const {
         return {this->z(), this->x(), this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 zxwz() const {
+    [[nodiscard]] constexpr inline vec4 zxwz() const {
         return {this->z(), this->x(), this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 zxww() const {
+    [[nodiscard]] constexpr inline vec4 zxww() const {
         return {this->z(), this->x(), this->w(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 zyxx() const {
+    [[nodiscard]] constexpr inline vec4 zyxx() const {
         return {this->z(), this->y(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 zyxy() const {
+    [[nodiscard]] constexpr inline vec4 zyxy() const {
         return {this->z(), this->y(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 zyxz() const {
+    [[nodiscard]] constexpr inline vec4 zyxz() const {
         return {this->z(), this->y(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 zyxw() const {
+    [[nodiscard]] constexpr inline vec4 zyxw() const {
         return {this->z(), this->y(), this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 zyyx() const {
+    [[nodiscard]] constexpr inline vec4 zyyx() const {
         return {this->z(), this->y(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 zyyy() const {
+    [[nodiscard]] constexpr inline vec4 zyyy() const {
         return {this->z(), this->y(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 zyyz() const {
+    [[nodiscard]] constexpr inline vec4 zyyz() const {
         return {this->z(), this->y(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 zyyw() const {
+    [[nodiscard]] constexpr inline vec4 zyyw() const {
         return {this->z(), this->y(), this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 zyzx() const {
+    [[nodiscard]] constexpr inline vec4 zyzx() const {
         return {this->z(), this->y(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 zyzy() const {
+    [[nodiscard]] constexpr inline vec4 zyzy() const {
         return {this->z(), this->y(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 zyzz() const {
+    [[nodiscard]] constexpr inline vec4 zyzz() const {
         return {this->z(), this->y(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 zyzw() const {
+    [[nodiscard]] constexpr inline vec4 zyzw() const {
         return {this->z(), this->y(), this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 zywx() const {
+    [[nodiscard]] constexpr inline vec4 zywx() const {
         return {this->z(), this->y(), this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 zywy() const {
+    [[nodiscard]] constexpr inline vec4 zywy() const {
         return {this->z(), this->y(), this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 zywz() const {
+    [[nodiscard]] constexpr inline vec4 zywz() const {
         return {this->z(), this->y(), this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 zyww() const {
+    [[nodiscard]] constexpr inline vec4 zyww() const {
         return {this->z(), this->y(), this->w(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 zzxx() const {
+    [[nodiscard]] constexpr inline vec4 zzxx() const {
         return {this->z(), this->z(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 zzxy() const {
+    [[nodiscard]] constexpr inline vec4 zzxy() const {
         return {this->z(), this->z(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 zzxz() const {
+    [[nodiscard]] constexpr inline vec4 zzxz() const {
         return {this->z(), this->z(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 zzxw() const {
+    [[nodiscard]] constexpr inline vec4 zzxw() const {
         return {this->z(), this->z(), this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 zzyx() const {
+    [[nodiscard]] constexpr inline vec4 zzyx() const {
         return {this->z(), this->z(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 zzyy() const {
+    [[nodiscard]] constexpr inline vec4 zzyy() const {
         return {this->z(), this->z(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 zzyz() const {
+    [[nodiscard]] constexpr inline vec4 zzyz() const {
         return {this->z(), this->z(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 zzyw() const {
+    [[nodiscard]] constexpr inline vec4 zzyw() const {
         return {this->z(), this->z(), this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 zzzx() const {
+    [[nodiscard]] constexpr inline vec4 zzzx() const {
         return {this->z(), this->z(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 zzzy() const {
+    [[nodiscard]] constexpr inline vec4 zzzy() const {
         return {this->z(), this->z(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 zzzz() const {
+    [[nodiscard]] constexpr inline vec4 zzzz() const {
         return {this->z(), this->z(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 zzzw() const {
+    [[nodiscard]] constexpr inline vec4 zzzw() const {
         return {this->z(), this->z(), this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 zzwx() const {
+    [[nodiscard]] constexpr inline vec4 zzwx() const {
         return {this->z(), this->z(), this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 zzwy() const {
+    [[nodiscard]] constexpr inline vec4 zzwy() const {
         return {this->z(), this->z(), this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 zzwz() const {
+    [[nodiscard]] constexpr inline vec4 zzwz() const {
         return {this->z(), this->z(), this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 zzww() const {
+    [[nodiscard]] constexpr inline vec4 zzww() const {
         return {this->z(), this->z(), this->w(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 zwxx() const {
+    [[nodiscard]] constexpr inline vec4 zwxx() const {
         return {this->z(), this->w(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 zwxy() const {
+    [[nodiscard]] constexpr inline vec4 zwxy() const {
         return {this->z(), this->w(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 zwxz() const {
+    [[nodiscard]] constexpr inline vec4 zwxz() const {
         return {this->z(), this->w(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 zwxw() const {
+    [[nodiscard]] constexpr inline vec4 zwxw() const {
         return {this->z(), this->w(), this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 zwyx() const {
+    [[nodiscard]] constexpr inline vec4 zwyx() const {
         return {this->z(), this->w(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 zwyy() const {
+    [[nodiscard]] constexpr inline vec4 zwyy() const {
         return {this->z(), this->w(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 zwyz() const {
+    [[nodiscard]] constexpr inline vec4 zwyz() const {
         return {this->z(), this->w(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 zwyw() const {
+    [[nodiscard]] constexpr inline vec4 zwyw() const {
         return {this->z(), this->w(), this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 zwzx() const {
+    [[nodiscard]] constexpr inline vec4 zwzx() const {
         return {this->z(), this->w(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 zwzy() const {
+    [[nodiscard]] constexpr inline vec4 zwzy() const {
         return {this->z(), this->w(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 zwzz() const {
+    [[nodiscard]] constexpr inline vec4 zwzz() const {
         return {this->z(), this->w(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 zwzw() const {
+    [[nodiscard]] constexpr inline vec4 zwzw() const {
         return {this->z(), this->w(), this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 zwwx() const {
+    [[nodiscard]] constexpr inline vec4 zwwx() const {
         return {this->z(), this->w(), this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 zwwy() const {
+    [[nodiscard]] constexpr inline vec4 zwwy() const {
         return {this->z(), this->w(), this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 zwwz() const {
+    [[nodiscard]] constexpr inline vec4 zwwz() const {
         return {this->z(), this->w(), this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 zwww() const {
+    [[nodiscard]] constexpr inline vec4 zwww() const {
         return {this->z(), this->w(), this->w(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 wxxx() const {
+    [[nodiscard]] constexpr inline vec4 wxxx() const {
         return {this->w(), this->x(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 wxxy() const {
+    [[nodiscard]] constexpr inline vec4 wxxy() const {
         return {this->w(), this->x(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 wxxz() const {
+    [[nodiscard]] constexpr inline vec4 wxxz() const {
         return {this->w(), this->x(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 wxxw() const {
+    [[nodiscard]] constexpr inline vec4 wxxw() const {
         return {this->w(), this->x(), this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 wxyx() const {
+    [[nodiscard]] constexpr inline vec4 wxyx() const {
         return {this->w(), this->x(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 wxyy() const {
+    [[nodiscard]] constexpr inline vec4 wxyy() const {
         return {this->w(), this->x(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 wxyz() const {
+    [[nodiscard]] constexpr inline vec4 wxyz() const {
         return {this->w(), this->x(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 wxyw() const {
+    [[nodiscard]] constexpr inline vec4 wxyw() const {
         return {this->w(), this->x(), this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 wxzx() const {
+    [[nodiscard]] constexpr inline vec4 wxzx() const {
         return {this->w(), this->x(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 wxzy() const {
+    [[nodiscard]] constexpr inline vec4 wxzy() const {
         return {this->w(), this->x(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 wxzz() const {
+    [[nodiscard]] constexpr inline vec4 wxzz() const {
         return {this->w(), this->x(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 wxzw() const {
+    [[nodiscard]] constexpr inline vec4 wxzw() const {
         return {this->w(), this->x(), this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 wxwx() const {
+    [[nodiscard]] constexpr inline vec4 wxwx() const {
         return {this->w(), this->x(), this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 wxwy() const {
+    [[nodiscard]] constexpr inline vec4 wxwy() const {
         return {this->w(), this->x(), this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 wxwz() const {
+    [[nodiscard]] constexpr inline vec4 wxwz() const {
         return {this->w(), this->x(), this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 wxww() const {
+    [[nodiscard]] constexpr inline vec4 wxww() const {
         return {this->w(), this->x(), this->w(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 wyxx() const {
+    [[nodiscard]] constexpr inline vec4 wyxx() const {
         return {this->w(), this->y(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 wyxy() const {
+    [[nodiscard]] constexpr inline vec4 wyxy() const {
         return {this->w(), this->y(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 wyxz() const {
+    [[nodiscard]] constexpr inline vec4 wyxz() const {
         return {this->w(), this->y(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 wyxw() const {
+    [[nodiscard]] constexpr inline vec4 wyxw() const {
         return {this->w(), this->y(), this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 wyyx() const {
+    [[nodiscard]] constexpr inline vec4 wyyx() const {
         return {this->w(), this->y(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 wyyy() const {
+    [[nodiscard]] constexpr inline vec4 wyyy() const {
         return {this->w(), this->y(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 wyyz() const {
+    [[nodiscard]] constexpr inline vec4 wyyz() const {
         return {this->w(), this->y(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 wyyw() const {
+    [[nodiscard]] constexpr inline vec4 wyyw() const {
         return {this->w(), this->y(), this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 wyzx() const {
+    [[nodiscard]] constexpr inline vec4 wyzx() const {
         return {this->w(), this->y(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 wyzy() const {
+    [[nodiscard]] constexpr inline vec4 wyzy() const {
         return {this->w(), this->y(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 wyzz() const {
+    [[nodiscard]] constexpr inline vec4 wyzz() const {
         return {this->w(), this->y(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 wyzw() const {
+    [[nodiscard]] constexpr inline vec4 wyzw() const {
         return {this->w(), this->y(), this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 wywx() const {
+    [[nodiscard]] constexpr inline vec4 wywx() const {
         return {this->w(), this->y(), this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 wywy() const {
+    [[nodiscard]] constexpr inline vec4 wywy() const {
         return {this->w(), this->y(), this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 wywz() const {
+    [[nodiscard]] constexpr inline vec4 wywz() const {
         return {this->w(), this->y(), this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 wyww() const {
+    [[nodiscard]] constexpr inline vec4 wyww() const {
         return {this->w(), this->y(), this->w(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 wzxx() const {
+    [[nodiscard]] constexpr inline vec4 wzxx() const {
         return {this->w(), this->z(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 wzxy() const {
+    [[nodiscard]] constexpr inline vec4 wzxy() const {
         return {this->w(), this->z(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 wzxz() const {
+    [[nodiscard]] constexpr inline vec4 wzxz() const {
         return {this->w(), this->z(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 wzxw() const {
+    [[nodiscard]] constexpr inline vec4 wzxw() const {
         return {this->w(), this->z(), this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 wzyx() const {
+    [[nodiscard]] constexpr inline vec4 wzyx() const {
         return {this->w(), this->z(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 wzyy() const {
+    [[nodiscard]] constexpr inline vec4 wzyy() const {
         return {this->w(), this->z(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 wzyz() const {
+    [[nodiscard]] constexpr inline vec4 wzyz() const {
         return {this->w(), this->z(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 wzyw() const {
+    [[nodiscard]] constexpr inline vec4 wzyw() const {
         return {this->w(), this->z(), this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 wzzx() const {
+    [[nodiscard]] constexpr inline vec4 wzzx() const {
         return {this->w(), this->z(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 wzzy() const {
+    [[nodiscard]] constexpr inline vec4 wzzy() const {
         return {this->w(), this->z(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 wzzz() const {
+    [[nodiscard]] constexpr inline vec4 wzzz() const {
         return {this->w(), this->z(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 wzzw() const {
+    [[nodiscard]] constexpr inline vec4 wzzw() const {
         return {this->w(), this->z(), this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 wzwx() const {
+    [[nodiscard]] constexpr inline vec4 wzwx() const {
         return {this->w(), this->z(), this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 wzwy() const {
+    [[nodiscard]] constexpr inline vec4 wzwy() const {
         return {this->w(), this->z(), this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 wzwz() const {
+    [[nodiscard]] constexpr inline vec4 wzwz() const {
         return {this->w(), this->z(), this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 wzww() const {
+    [[nodiscard]] constexpr inline vec4 wzww() const {
         return {this->w(), this->z(), this->w(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 wwxx() const {
+    [[nodiscard]] constexpr inline vec4 wwxx() const {
         return {this->w(), this->w(), this->x(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 wwxy() const {
+    [[nodiscard]] constexpr inline vec4 wwxy() const {
         return {this->w(), this->w(), this->x(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 wwxz() const {
+    [[nodiscard]] constexpr inline vec4 wwxz() const {
         return {this->w(), this->w(), this->x(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 wwxw() const {
+    [[nodiscard]] constexpr inline vec4 wwxw() const {
         return {this->w(), this->w(), this->x(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 wwyx() const {
+    [[nodiscard]] constexpr inline vec4 wwyx() const {
         return {this->w(), this->w(), this->y(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 wwyy() const {
+    [[nodiscard]] constexpr inline vec4 wwyy() const {
         return {this->w(), this->w(), this->y(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 wwyz() const {
+    [[nodiscard]] constexpr inline vec4 wwyz() const {
         return {this->w(), this->w(), this->y(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 wwyw() const {
+    [[nodiscard]] constexpr inline vec4 wwyw() const {
         return {this->w(), this->w(), this->y(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 wwzx() const {
+    [[nodiscard]] constexpr inline vec4 wwzx() const {
         return {this->w(), this->w(), this->z(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 wwzy() const {
+    [[nodiscard]] constexpr inline vec4 wwzy() const {
         return {this->w(), this->w(), this->z(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 wwzz() const {
+    [[nodiscard]] constexpr inline vec4 wwzz() const {
         return {this->w(), this->w(), this->z(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 wwzw() const {
+    [[nodiscard]] constexpr inline vec4 wwzw() const {
         return {this->w(), this->w(), this->z(), this->w()};
     }
 
-    [[nodiscard]] inline vec4 wwwx() const {
+    [[nodiscard]] constexpr inline vec4 wwwx() const {
         return {this->w(), this->w(), this->w(), this->x()};
     }
 
-    [[nodiscard]] inline vec4 wwwy() const {
+    [[nodiscard]] constexpr inline vec4 wwwy() const {
         return {this->w(), this->w(), this->w(), this->y()};
     }
 
-    [[nodiscard]] inline vec4 wwwz() const {
+    [[nodiscard]] constexpr inline vec4 wwwz() const {
         return {this->w(), this->w(), this->w(), this->z()};
     }
 
-    [[nodiscard]] inline vec4 wwww() const {
+    [[nodiscard]] constexpr inline vec4 wwww() const {
         return {this->w(), this->w(), this->w(), this->w()};
     }
 
-    [[nodiscard]] inline float len2() const {
+    [[nodiscard]] constexpr inline float len2() const {
         return this->x() * this->x()+this->y() * this->y()+this->z() * this->z()+this->w() * this->w();
     }
 
-    [[nodiscard]] inline float len() const {
+    [[nodiscard]] constexpr inline float len() const {
         return std::sqrt(this->len2());
     }
 
-    [[nodiscard]] inline vec4 abs() const {
+    [[nodiscard]] constexpr inline vec4 abs() const {
         return {std::abs(this->x()), std::abs(this->y()), std::abs(this->z()), std::abs(this->w())};
     }
 
 };
 
-[[nodiscard]] inline vec4 operator+(const vec4& a, const vec4& b) {
+[[nodiscard]] constexpr inline vec4 operator+(const vec4& a, const vec4& b) {
     return {a.x() + b.x(), a.y() + b.y(), a.z() + b.z(), a.w() + b.w()};
 }
 
-[[nodiscard]] inline vec4 operator-(const vec4& a, const vec4& b) {
+[[nodiscard]] constexpr inline vec4 operator-(const vec4& a, const vec4& b) {
     return {a.x() - b.x(), a.y() - b.y(), a.z() - b.z(), a.w() - b.w()};
 }
 
-[[nodiscard]] inline vec4 operator*(const vec4& a, const vec4& b) {
+[[nodiscard]] constexpr inline vec4 operator*(const vec4& a, const vec4& b) {
     return {a.x() * b.x(), a.y() * b.y(), a.z() * b.z(), a.w() * b.w()};
 }
 
-[[nodiscard]] inline vec4 operator/(const vec4& a, const vec4& b) {
+[[nodiscard]] constexpr inline vec4 operator/(const vec4& a, const vec4& b) {
     return {a.x() / b.x(), a.y() / b.y(), a.z() / b.z(), a.w() / b.w()};
 }
 
-inline vec4& operator+=(vec4& a, const vec4& b) {
+constexpr inline vec4& operator+=(vec4& a, const vec4& b) {
     a.x() += b.x();
     a.y() += b.y();
     a.z() += b.z();
@@ -1861,7 +1861,7 @@ inline vec4& operator+=(vec4& a, const vec4& b) {
     return a;
 }
 
-inline vec4& operator-=(vec4& a, const vec4& b) {
+constexpr inline vec4& operator-=(vec4& a, const vec4& b) {
     a.x() -= b.x();
     a.y() -= b.y();
     a.z() -= b.z();
@@ -1869,7 +1869,7 @@ inline vec4& operator-=(vec4& a, const vec4& b) {
     return a;
 }
 
-inline vec4& operator*=(vec4& a, const vec4& b) {
+constexpr inline vec4& operator*=(vec4& a, const vec4& b) {
     a.x() *= b.x();
     a.y() *= b.y();
     a.z() *= b.z();
@@ -1877,7 +1877,7 @@ inline vec4& operator*=(vec4& a, const vec4& b) {
     return a;
 }
 
-inline vec4& operator/=(vec4& a, const vec4& b) {
+constexpr inline vec4& operator/=(vec4& a, const vec4& b) {
     a.x() /= b.x();
     a.y() /= b.y();
     a.z() /= b.z();
@@ -1885,27 +1885,27 @@ inline vec4& operator/=(vec4& a, const vec4& b) {
     return a;
 }
 
-[[nodiscard]] inline vec4 operator-(const vec4& vec) {
+[[nodiscard]] constexpr inline vec4 operator-(const vec4& vec) {
     return {-vec.x(), -vec.y(), -vec.z(), -vec.w()};
 }
 
-[[nodiscard]] inline vec4 operator*(const vec4& vec, float scl) {
+[[nodiscard]] constexpr inline vec4 operator*(const vec4& vec, float scl) {
     return {vec.x() * scl, vec.y() * scl, vec.z() * scl, vec.w() * scl};
 }
 
-[[nodiscard]] inline vec4 operator*(float scl, const vec4& vec) {
+[[nodiscard]] constexpr inline vec4 operator*(float scl, const vec4& vec) {
     return {scl * vec.x() , scl * vec.y() , scl * vec.z() , scl * vec.w() };
 }
 
-[[nodiscard]] inline vec4 operator/(const vec4& vec, float scl) {
+[[nodiscard]] constexpr inline vec4 operator/(const vec4& vec, float scl) {
     return {vec.x() / scl, vec.y() / scl, vec.z() / scl, vec.w() / scl};
 }
 
-[[nodiscard]] inline vec4 operator/(float scl, const vec4& vec) {
+[[nodiscard]] constexpr inline vec4 operator/(float scl, const vec4& vec) {
     return {scl / vec.x() , scl / vec.y() , scl / vec.z() , scl / vec.w() };
 }
 
-inline vec4& operator*=(vec4& vec, float scl) {
+constexpr inline vec4& operator*=(vec4& vec, float scl) {
     vec.x() *= scl;
     vec.y() *= scl;
     vec.z() *= scl;
@@ -1913,7 +1913,7 @@ inline vec4& operator*=(vec4& vec, float scl) {
 return vec;
 }
 
-inline vec4& operator/=(vec4& vec, float scl) {
+constexpr inline vec4& operator/=(vec4& vec, float scl) {
     vec.x() /= scl;
     vec.y() /= scl;
     vec.z() /= scl;
@@ -1925,14 +1925,14 @@ inline std::istream& operator>>(std::istream& stream, vec4& vec) {
     return stream >> vec.x() >> vec.y() >> vec.z() >> vec.w();
 }
 
-[[nodiscard]] inline float dot(const vec4 &a, const vec4 &b) {
+[[nodiscard]] constexpr inline float dot(const vec4 &a, const vec4 &b) {
     return a.x() * b.x() + a.y() * b.y() + a.z() * b.z() + a.w() * b.w();
 }
-[[nodiscard]] inline vec4 min(const vec4& a, const vec4& b) {
+[[nodiscard]] constexpr inline vec4 min(const vec4& a, const vec4& b) {
     return {std::min(a.x(), b.x()), std::min(a.y(), b.y()), std::min(a.z(), b.z()), std::min(a.w(), b.w())};
 }
 
-[[nodiscard]] inline vec4 max(const vec4& a, const vec4& b) {
+[[nodiscard]] constexpr inline vec4 max(const vec4& a, const vec4& b) {
     return {std::max(a.x(), b.x()), std::max(a.y(), b.y()), std::max(a.z(), b.z()), std::max(a.w(), b.w())};
 }
 
@@ -1940,228 +1940,228 @@ inline std::istream& operator>>(std::istream& stream, vec4& vec) {
 struct color3 {
     std::array<float, 3> val;
 
-    [[nodiscard]] inline color3(float r = 0, float g = 0, float b = 0) : val({r, g, b}) {}
-    [[nodiscard]] inline color3(const color3&) = default;
+    [[nodiscard]] constexpr inline color3(float r = 0, float g = 0, float b = 0) : val({r, g, b}) {}
+    [[nodiscard]] constexpr inline color3(const color3&) = default;
     inline color3& operator=(const color3&) = default;
 
-    [[nodiscard]] inline float& r() {
+    [[nodiscard]] constexpr inline float& r() {
         return this->val[0];
     }
 
-    [[nodiscard]] inline const float& r() const{
+    [[nodiscard]] constexpr inline const float& r() const{
         return this->val[0];
     }
 
-    [[nodiscard]] inline float& g() {
+    [[nodiscard]] constexpr inline float& g() {
         return this->val[1];
     }
 
-    [[nodiscard]] inline const float& g() const{
+    [[nodiscard]] constexpr inline const float& g() const{
         return this->val[1];
     }
 
-    [[nodiscard]] inline float& b() {
+    [[nodiscard]] constexpr inline float& b() {
         return this->val[2];
     }
 
-    [[nodiscard]] inline const float& b() const{
+    [[nodiscard]] constexpr inline const float& b() const{
         return this->val[2];
     }
 
-    [[nodiscard]] inline color3 rrr() const {
+    [[nodiscard]] constexpr inline color3 rrr() const {
         return {this->r(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color3 rrg() const {
+    [[nodiscard]] constexpr inline color3 rrg() const {
         return {this->r(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color3 rrb() const {
+    [[nodiscard]] constexpr inline color3 rrb() const {
         return {this->r(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color3 rgr() const {
+    [[nodiscard]] constexpr inline color3 rgr() const {
         return {this->r(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color3 rgg() const {
+    [[nodiscard]] constexpr inline color3 rgg() const {
         return {this->r(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color3 rgb() const {
+    [[nodiscard]] constexpr inline color3 rgb() const {
         return {this->r(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color3 rbr() const {
+    [[nodiscard]] constexpr inline color3 rbr() const {
         return {this->r(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color3 rbg() const {
+    [[nodiscard]] constexpr inline color3 rbg() const {
         return {this->r(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color3 rbb() const {
+    [[nodiscard]] constexpr inline color3 rbb() const {
         return {this->r(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color3 grr() const {
+    [[nodiscard]] constexpr inline color3 grr() const {
         return {this->g(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color3 grg() const {
+    [[nodiscard]] constexpr inline color3 grg() const {
         return {this->g(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color3 grb() const {
+    [[nodiscard]] constexpr inline color3 grb() const {
         return {this->g(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color3 ggr() const {
+    [[nodiscard]] constexpr inline color3 ggr() const {
         return {this->g(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color3 ggg() const {
+    [[nodiscard]] constexpr inline color3 ggg() const {
         return {this->g(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color3 ggb() const {
+    [[nodiscard]] constexpr inline color3 ggb() const {
         return {this->g(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color3 gbr() const {
+    [[nodiscard]] constexpr inline color3 gbr() const {
         return {this->g(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color3 gbg() const {
+    [[nodiscard]] constexpr inline color3 gbg() const {
         return {this->g(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color3 gbb() const {
+    [[nodiscard]] constexpr inline color3 gbb() const {
         return {this->g(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color3 brr() const {
+    [[nodiscard]] constexpr inline color3 brr() const {
         return {this->b(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color3 brg() const {
+    [[nodiscard]] constexpr inline color3 brg() const {
         return {this->b(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color3 brb() const {
+    [[nodiscard]] constexpr inline color3 brb() const {
         return {this->b(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color3 bgr() const {
+    [[nodiscard]] constexpr inline color3 bgr() const {
         return {this->b(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color3 bgg() const {
+    [[nodiscard]] constexpr inline color3 bgg() const {
         return {this->b(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color3 bgb() const {
+    [[nodiscard]] constexpr inline color3 bgb() const {
         return {this->b(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color3 bbr() const {
+    [[nodiscard]] constexpr inline color3 bbr() const {
         return {this->b(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color3 bbg() const {
+    [[nodiscard]] constexpr inline color3 bbg() const {
         return {this->b(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color3 bbb() const {
+    [[nodiscard]] constexpr inline color3 bbb() const {
         return {this->b(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline float len2() const {
+    [[nodiscard]] constexpr inline float len2() const {
         return this->r() * this->r()+this->g() * this->g()+this->b() * this->b();
     }
 
-    [[nodiscard]] inline float len() const {
+    [[nodiscard]] constexpr inline float len() const {
         return std::sqrt(this->len2());
     }
 
-    [[nodiscard]] inline color3 abs() const {
+    [[nodiscard]] constexpr inline color3 abs() const {
         return {std::abs(this->r()), std::abs(this->g()), std::abs(this->b())};
     }
 
 };
 
-[[nodiscard]] inline color3 operator+(const color3& a, const color3& b) {
+[[nodiscard]] constexpr inline color3 operator+(const color3& a, const color3& b) {
     return {a.r() + b.r(), a.g() + b.g(), a.b() + b.b()};
 }
 
-[[nodiscard]] inline color3 operator-(const color3& a, const color3& b) {
+[[nodiscard]] constexpr inline color3 operator-(const color3& a, const color3& b) {
     return {a.r() - b.r(), a.g() - b.g(), a.b() - b.b()};
 }
 
-[[nodiscard]] inline color3 operator*(const color3& a, const color3& b) {
+[[nodiscard]] constexpr inline color3 operator*(const color3& a, const color3& b) {
     return {a.r() * b.r(), a.g() * b.g(), a.b() * b.b()};
 }
 
-[[nodiscard]] inline color3 operator/(const color3& a, const color3& b) {
+[[nodiscard]] constexpr inline color3 operator/(const color3& a, const color3& b) {
     return {a.r() / b.r(), a.g() / b.g(), a.b() / b.b()};
 }
 
-inline color3& operator+=(color3& a, const color3& b) {
+constexpr inline color3& operator+=(color3& a, const color3& b) {
     a.r() += b.r();
     a.g() += b.g();
     a.b() += b.b();
     return a;
 }
 
-inline color3& operator-=(color3& a, const color3& b) {
+constexpr inline color3& operator-=(color3& a, const color3& b) {
     a.r() -= b.r();
     a.g() -= b.g();
     a.b() -= b.b();
     return a;
 }
 
-inline color3& operator*=(color3& a, const color3& b) {
+constexpr inline color3& operator*=(color3& a, const color3& b) {
     a.r() *= b.r();
     a.g() *= b.g();
     a.b() *= b.b();
     return a;
 }
 
-inline color3& operator/=(color3& a, const color3& b) {
+constexpr inline color3& operator/=(color3& a, const color3& b) {
     a.r() /= b.r();
     a.g() /= b.g();
     a.b() /= b.b();
     return a;
 }
 
-[[nodiscard]] inline color3 operator-(const color3& vec) {
+[[nodiscard]] constexpr inline color3 operator-(const color3& vec) {
     return {-vec.r(), -vec.g(), -vec.b()};
 }
 
-[[nodiscard]] inline color3 operator*(const color3& vec, float scl) {
+[[nodiscard]] constexpr inline color3 operator*(const color3& vec, float scl) {
     return {vec.r() * scl, vec.g() * scl, vec.b() * scl};
 }
 
-[[nodiscard]] inline color3 operator*(float scl, const color3& vec) {
+[[nodiscard]] constexpr inline color3 operator*(float scl, const color3& vec) {
     return {scl * vec.r() , scl * vec.g() , scl * vec.b() };
 }
 
-[[nodiscard]] inline color3 operator/(const color3& vec, float scl) {
+[[nodiscard]] constexpr inline color3 operator/(const color3& vec, float scl) {
     return {vec.r() / scl, vec.g() / scl, vec.b() / scl};
 }
 
-[[nodiscard]] inline color3 operator/(float scl, const color3& vec) {
+[[nodiscard]] constexpr inline color3 operator/(float scl, const color3& vec) {
     return {scl / vec.r() , scl / vec.g() , scl / vec.b() };
 }
 
-inline color3& operator*=(color3& vec, float scl) {
+constexpr inline color3& operator*=(color3& vec, float scl) {
     vec.r() *= scl;
     vec.g() *= scl;
     vec.b() *= scl;
 return vec;
 }
 
-inline color3& operator/=(color3& vec, float scl) {
+constexpr inline color3& operator/=(color3& vec, float scl) {
     vec.r() /= scl;
     vec.g() /= scl;
     vec.b() /= scl;
@@ -2172,14 +2172,14 @@ inline std::istream& operator>>(std::istream& stream, color3& vec) {
     return stream >> vec.r() >> vec.g() >> vec.b();
 }
 
-[[nodiscard]] inline float dot(const color3 &a, const color3 &b) {
+[[nodiscard]] constexpr inline float dot(const color3 &a, const color3 &b) {
     return a.r() * b.r() + a.g() * b.g() + a.b() * b.b();
 }
-[[nodiscard]] inline color3 min(const color3& a, const color3& b) {
+[[nodiscard]] constexpr inline color3 min(const color3& a, const color3& b) {
     return {std::min(a.r(), b.r()), std::min(a.g(), b.g()), std::min(a.b(), b.b())};
 }
 
-[[nodiscard]] inline color3 max(const color3& a, const color3& b) {
+[[nodiscard]] constexpr inline color3 max(const color3& a, const color3& b) {
     return {std::max(a.r(), b.r()), std::max(a.g(), b.g()), std::max(a.b(), b.b())};
 }
 
@@ -2187,1357 +2187,1357 @@ inline std::istream& operator>>(std::istream& stream, color3& vec) {
 struct color4 {
     std::array<float, 4> val;
 
-    [[nodiscard]] inline color4(float r = 0, float g = 0, float b = 0, float a = 0) : val({r, g, b, a}) {}
-    [[nodiscard]] inline color4(const color4&) = default;
+    [[nodiscard]] constexpr inline color4(float r = 0, float g = 0, float b = 0, float a = 0) : val({r, g, b, a}) {}
+    [[nodiscard]] constexpr inline color4(const color4&) = default;
     inline color4& operator=(const color4&) = default;
-    [[nodiscard]] inline color4(color3 p0, float p1) : color4{p0.val[0], p0.val[1], p0.val[2], p1} {}
+    [[nodiscard]] constexpr inline color4(color3 p0, float p1) : color4{p0.val[0], p0.val[1], p0.val[2], p1} {}
 
-    [[nodiscard]] inline color4(float p0, color3 p1) : color4{p0, p1.val[0], p1.val[1], p1.val[2]} {}
+    [[nodiscard]] constexpr inline color4(float p0, color3 p1) : color4{p0, p1.val[0], p1.val[1], p1.val[2]} {}
 
 
-    [[nodiscard]] inline float& r() {
+    [[nodiscard]] constexpr inline float& r() {
         return this->val[0];
     }
 
-    [[nodiscard]] inline const float& r() const{
+    [[nodiscard]] constexpr inline const float& r() const{
         return this->val[0];
     }
 
-    [[nodiscard]] inline float& g() {
+    [[nodiscard]] constexpr inline float& g() {
         return this->val[1];
     }
 
-    [[nodiscard]] inline const float& g() const{
+    [[nodiscard]] constexpr inline const float& g() const{
         return this->val[1];
     }
 
-    [[nodiscard]] inline float& b() {
+    [[nodiscard]] constexpr inline float& b() {
         return this->val[2];
     }
 
-    [[nodiscard]] inline const float& b() const{
+    [[nodiscard]] constexpr inline const float& b() const{
         return this->val[2];
     }
 
-    [[nodiscard]] inline float& a() {
+    [[nodiscard]] constexpr inline float& a() {
         return this->val[3];
     }
 
-    [[nodiscard]] inline const float& a() const{
+    [[nodiscard]] constexpr inline const float& a() const{
         return this->val[3];
     }
 
-    [[nodiscard]] inline color3 rrr() const {
+    [[nodiscard]] constexpr inline color3 rrr() const {
         return {this->r(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color3 rrg() const {
+    [[nodiscard]] constexpr inline color3 rrg() const {
         return {this->r(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color3 rrb() const {
+    [[nodiscard]] constexpr inline color3 rrb() const {
         return {this->r(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color3 rra() const {
+    [[nodiscard]] constexpr inline color3 rra() const {
         return {this->r(), this->r(), this->a()};
     }
 
-    [[nodiscard]] inline color3 rgr() const {
+    [[nodiscard]] constexpr inline color3 rgr() const {
         return {this->r(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color3 rgg() const {
+    [[nodiscard]] constexpr inline color3 rgg() const {
         return {this->r(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color3 rgb() const {
+    [[nodiscard]] constexpr inline color3 rgb() const {
         return {this->r(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color3 rga() const {
+    [[nodiscard]] constexpr inline color3 rga() const {
         return {this->r(), this->g(), this->a()};
     }
 
-    [[nodiscard]] inline color3 rbr() const {
+    [[nodiscard]] constexpr inline color3 rbr() const {
         return {this->r(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color3 rbg() const {
+    [[nodiscard]] constexpr inline color3 rbg() const {
         return {this->r(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color3 rbb() const {
+    [[nodiscard]] constexpr inline color3 rbb() const {
         return {this->r(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color3 rba() const {
+    [[nodiscard]] constexpr inline color3 rba() const {
         return {this->r(), this->b(), this->a()};
     }
 
-    [[nodiscard]] inline color3 rar() const {
+    [[nodiscard]] constexpr inline color3 rar() const {
         return {this->r(), this->a(), this->r()};
     }
 
-    [[nodiscard]] inline color3 rag() const {
+    [[nodiscard]] constexpr inline color3 rag() const {
         return {this->r(), this->a(), this->g()};
     }
 
-    [[nodiscard]] inline color3 rab() const {
+    [[nodiscard]] constexpr inline color3 rab() const {
         return {this->r(), this->a(), this->b()};
     }
 
-    [[nodiscard]] inline color3 raa() const {
+    [[nodiscard]] constexpr inline color3 raa() const {
         return {this->r(), this->a(), this->a()};
     }
 
-    [[nodiscard]] inline color3 grr() const {
+    [[nodiscard]] constexpr inline color3 grr() const {
         return {this->g(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color3 grg() const {
+    [[nodiscard]] constexpr inline color3 grg() const {
         return {this->g(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color3 grb() const {
+    [[nodiscard]] constexpr inline color3 grb() const {
         return {this->g(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color3 gra() const {
+    [[nodiscard]] constexpr inline color3 gra() const {
         return {this->g(), this->r(), this->a()};
     }
 
-    [[nodiscard]] inline color3 ggr() const {
+    [[nodiscard]] constexpr inline color3 ggr() const {
         return {this->g(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color3 ggg() const {
+    [[nodiscard]] constexpr inline color3 ggg() const {
         return {this->g(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color3 ggb() const {
+    [[nodiscard]] constexpr inline color3 ggb() const {
         return {this->g(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color3 gga() const {
+    [[nodiscard]] constexpr inline color3 gga() const {
         return {this->g(), this->g(), this->a()};
     }
 
-    [[nodiscard]] inline color3 gbr() const {
+    [[nodiscard]] constexpr inline color3 gbr() const {
         return {this->g(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color3 gbg() const {
+    [[nodiscard]] constexpr inline color3 gbg() const {
         return {this->g(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color3 gbb() const {
+    [[nodiscard]] constexpr inline color3 gbb() const {
         return {this->g(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color3 gba() const {
+    [[nodiscard]] constexpr inline color3 gba() const {
         return {this->g(), this->b(), this->a()};
     }
 
-    [[nodiscard]] inline color3 gar() const {
+    [[nodiscard]] constexpr inline color3 gar() const {
         return {this->g(), this->a(), this->r()};
     }
 
-    [[nodiscard]] inline color3 gag() const {
+    [[nodiscard]] constexpr inline color3 gag() const {
         return {this->g(), this->a(), this->g()};
     }
 
-    [[nodiscard]] inline color3 gab() const {
+    [[nodiscard]] constexpr inline color3 gab() const {
         return {this->g(), this->a(), this->b()};
     }
 
-    [[nodiscard]] inline color3 gaa() const {
+    [[nodiscard]] constexpr inline color3 gaa() const {
         return {this->g(), this->a(), this->a()};
     }
 
-    [[nodiscard]] inline color3 brr() const {
+    [[nodiscard]] constexpr inline color3 brr() const {
         return {this->b(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color3 brg() const {
+    [[nodiscard]] constexpr inline color3 brg() const {
         return {this->b(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color3 brb() const {
+    [[nodiscard]] constexpr inline color3 brb() const {
         return {this->b(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color3 bra() const {
+    [[nodiscard]] constexpr inline color3 bra() const {
         return {this->b(), this->r(), this->a()};
     }
 
-    [[nodiscard]] inline color3 bgr() const {
+    [[nodiscard]] constexpr inline color3 bgr() const {
         return {this->b(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color3 bgg() const {
+    [[nodiscard]] constexpr inline color3 bgg() const {
         return {this->b(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color3 bgb() const {
+    [[nodiscard]] constexpr inline color3 bgb() const {
         return {this->b(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color3 bga() const {
+    [[nodiscard]] constexpr inline color3 bga() const {
         return {this->b(), this->g(), this->a()};
     }
 
-    [[nodiscard]] inline color3 bbr() const {
+    [[nodiscard]] constexpr inline color3 bbr() const {
         return {this->b(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color3 bbg() const {
+    [[nodiscard]] constexpr inline color3 bbg() const {
         return {this->b(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color3 bbb() const {
+    [[nodiscard]] constexpr inline color3 bbb() const {
         return {this->b(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color3 bba() const {
+    [[nodiscard]] constexpr inline color3 bba() const {
         return {this->b(), this->b(), this->a()};
     }
 
-    [[nodiscard]] inline color3 bar() const {
+    [[nodiscard]] constexpr inline color3 bar() const {
         return {this->b(), this->a(), this->r()};
     }
 
-    [[nodiscard]] inline color3 bag() const {
+    [[nodiscard]] constexpr inline color3 bag() const {
         return {this->b(), this->a(), this->g()};
     }
 
-    [[nodiscard]] inline color3 bab() const {
+    [[nodiscard]] constexpr inline color3 bab() const {
         return {this->b(), this->a(), this->b()};
     }
 
-    [[nodiscard]] inline color3 baa() const {
+    [[nodiscard]] constexpr inline color3 baa() const {
         return {this->b(), this->a(), this->a()};
     }
 
-    [[nodiscard]] inline color3 arr() const {
+    [[nodiscard]] constexpr inline color3 arr() const {
         return {this->a(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color3 arg() const {
+    [[nodiscard]] constexpr inline color3 arg() const {
         return {this->a(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color3 arb() const {
+    [[nodiscard]] constexpr inline color3 arb() const {
         return {this->a(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color3 ara() const {
+    [[nodiscard]] constexpr inline color3 ara() const {
         return {this->a(), this->r(), this->a()};
     }
 
-    [[nodiscard]] inline color3 agr() const {
+    [[nodiscard]] constexpr inline color3 agr() const {
         return {this->a(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color3 agg() const {
+    [[nodiscard]] constexpr inline color3 agg() const {
         return {this->a(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color3 agb() const {
+    [[nodiscard]] constexpr inline color3 agb() const {
         return {this->a(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color3 aga() const {
+    [[nodiscard]] constexpr inline color3 aga() const {
         return {this->a(), this->g(), this->a()};
     }
 
-    [[nodiscard]] inline color3 abr() const {
+    [[nodiscard]] constexpr inline color3 abr() const {
         return {this->a(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color3 abg() const {
+    [[nodiscard]] constexpr inline color3 abg() const {
         return {this->a(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color3 abb() const {
+    [[nodiscard]] constexpr inline color3 abb() const {
         return {this->a(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color3 aba() const {
+    [[nodiscard]] constexpr inline color3 aba() const {
         return {this->a(), this->b(), this->a()};
     }
 
-    [[nodiscard]] inline color3 aar() const {
+    [[nodiscard]] constexpr inline color3 aar() const {
         return {this->a(), this->a(), this->r()};
     }
 
-    [[nodiscard]] inline color3 aag() const {
+    [[nodiscard]] constexpr inline color3 aag() const {
         return {this->a(), this->a(), this->g()};
     }
 
-    [[nodiscard]] inline color3 aab() const {
+    [[nodiscard]] constexpr inline color3 aab() const {
         return {this->a(), this->a(), this->b()};
     }
 
-    [[nodiscard]] inline color3 aaa() const {
+    [[nodiscard]] constexpr inline color3 aaa() const {
         return {this->a(), this->a(), this->a()};
     }
 
-    [[nodiscard]] inline color4 rrrr() const {
+    [[nodiscard]] constexpr inline color4 rrrr() const {
         return {this->r(), this->r(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color4 rrrg() const {
+    [[nodiscard]] constexpr inline color4 rrrg() const {
         return {this->r(), this->r(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color4 rrrb() const {
+    [[nodiscard]] constexpr inline color4 rrrb() const {
         return {this->r(), this->r(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color4 rrra() const {
+    [[nodiscard]] constexpr inline color4 rrra() const {
         return {this->r(), this->r(), this->r(), this->a()};
     }
 
-    [[nodiscard]] inline color4 rrgr() const {
+    [[nodiscard]] constexpr inline color4 rrgr() const {
         return {this->r(), this->r(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color4 rrgg() const {
+    [[nodiscard]] constexpr inline color4 rrgg() const {
         return {this->r(), this->r(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color4 rrgb() const {
+    [[nodiscard]] constexpr inline color4 rrgb() const {
         return {this->r(), this->r(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color4 rrga() const {
+    [[nodiscard]] constexpr inline color4 rrga() const {
         return {this->r(), this->r(), this->g(), this->a()};
     }
 
-    [[nodiscard]] inline color4 rrbr() const {
+    [[nodiscard]] constexpr inline color4 rrbr() const {
         return {this->r(), this->r(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color4 rrbg() const {
+    [[nodiscard]] constexpr inline color4 rrbg() const {
         return {this->r(), this->r(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color4 rrbb() const {
+    [[nodiscard]] constexpr inline color4 rrbb() const {
         return {this->r(), this->r(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color4 rrba() const {
+    [[nodiscard]] constexpr inline color4 rrba() const {
         return {this->r(), this->r(), this->b(), this->a()};
     }
 
-    [[nodiscard]] inline color4 rrar() const {
+    [[nodiscard]] constexpr inline color4 rrar() const {
         return {this->r(), this->r(), this->a(), this->r()};
     }
 
-    [[nodiscard]] inline color4 rrag() const {
+    [[nodiscard]] constexpr inline color4 rrag() const {
         return {this->r(), this->r(), this->a(), this->g()};
     }
 
-    [[nodiscard]] inline color4 rrab() const {
+    [[nodiscard]] constexpr inline color4 rrab() const {
         return {this->r(), this->r(), this->a(), this->b()};
     }
 
-    [[nodiscard]] inline color4 rraa() const {
+    [[nodiscard]] constexpr inline color4 rraa() const {
         return {this->r(), this->r(), this->a(), this->a()};
     }
 
-    [[nodiscard]] inline color4 rgrr() const {
+    [[nodiscard]] constexpr inline color4 rgrr() const {
         return {this->r(), this->g(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color4 rgrg() const {
+    [[nodiscard]] constexpr inline color4 rgrg() const {
         return {this->r(), this->g(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color4 rgrb() const {
+    [[nodiscard]] constexpr inline color4 rgrb() const {
         return {this->r(), this->g(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color4 rgra() const {
+    [[nodiscard]] constexpr inline color4 rgra() const {
         return {this->r(), this->g(), this->r(), this->a()};
     }
 
-    [[nodiscard]] inline color4 rggr() const {
+    [[nodiscard]] constexpr inline color4 rggr() const {
         return {this->r(), this->g(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color4 rggg() const {
+    [[nodiscard]] constexpr inline color4 rggg() const {
         return {this->r(), this->g(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color4 rggb() const {
+    [[nodiscard]] constexpr inline color4 rggb() const {
         return {this->r(), this->g(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color4 rgga() const {
+    [[nodiscard]] constexpr inline color4 rgga() const {
         return {this->r(), this->g(), this->g(), this->a()};
     }
 
-    [[nodiscard]] inline color4 rgbr() const {
+    [[nodiscard]] constexpr inline color4 rgbr() const {
         return {this->r(), this->g(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color4 rgbg() const {
+    [[nodiscard]] constexpr inline color4 rgbg() const {
         return {this->r(), this->g(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color4 rgbb() const {
+    [[nodiscard]] constexpr inline color4 rgbb() const {
         return {this->r(), this->g(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color4 rgba() const {
+    [[nodiscard]] constexpr inline color4 rgba() const {
         return {this->r(), this->g(), this->b(), this->a()};
     }
 
-    [[nodiscard]] inline color4 rgar() const {
+    [[nodiscard]] constexpr inline color4 rgar() const {
         return {this->r(), this->g(), this->a(), this->r()};
     }
 
-    [[nodiscard]] inline color4 rgag() const {
+    [[nodiscard]] constexpr inline color4 rgag() const {
         return {this->r(), this->g(), this->a(), this->g()};
     }
 
-    [[nodiscard]] inline color4 rgab() const {
+    [[nodiscard]] constexpr inline color4 rgab() const {
         return {this->r(), this->g(), this->a(), this->b()};
     }
 
-    [[nodiscard]] inline color4 rgaa() const {
+    [[nodiscard]] constexpr inline color4 rgaa() const {
         return {this->r(), this->g(), this->a(), this->a()};
     }
 
-    [[nodiscard]] inline color4 rbrr() const {
+    [[nodiscard]] constexpr inline color4 rbrr() const {
         return {this->r(), this->b(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color4 rbrg() const {
+    [[nodiscard]] constexpr inline color4 rbrg() const {
         return {this->r(), this->b(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color4 rbrb() const {
+    [[nodiscard]] constexpr inline color4 rbrb() const {
         return {this->r(), this->b(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color4 rbra() const {
+    [[nodiscard]] constexpr inline color4 rbra() const {
         return {this->r(), this->b(), this->r(), this->a()};
     }
 
-    [[nodiscard]] inline color4 rbgr() const {
+    [[nodiscard]] constexpr inline color4 rbgr() const {
         return {this->r(), this->b(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color4 rbgg() const {
+    [[nodiscard]] constexpr inline color4 rbgg() const {
         return {this->r(), this->b(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color4 rbgb() const {
+    [[nodiscard]] constexpr inline color4 rbgb() const {
         return {this->r(), this->b(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color4 rbga() const {
+    [[nodiscard]] constexpr inline color4 rbga() const {
         return {this->r(), this->b(), this->g(), this->a()};
     }
 
-    [[nodiscard]] inline color4 rbbr() const {
+    [[nodiscard]] constexpr inline color4 rbbr() const {
         return {this->r(), this->b(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color4 rbbg() const {
+    [[nodiscard]] constexpr inline color4 rbbg() const {
         return {this->r(), this->b(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color4 rbbb() const {
+    [[nodiscard]] constexpr inline color4 rbbb() const {
         return {this->r(), this->b(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color4 rbba() const {
+    [[nodiscard]] constexpr inline color4 rbba() const {
         return {this->r(), this->b(), this->b(), this->a()};
     }
 
-    [[nodiscard]] inline color4 rbar() const {
+    [[nodiscard]] constexpr inline color4 rbar() const {
         return {this->r(), this->b(), this->a(), this->r()};
     }
 
-    [[nodiscard]] inline color4 rbag() const {
+    [[nodiscard]] constexpr inline color4 rbag() const {
         return {this->r(), this->b(), this->a(), this->g()};
     }
 
-    [[nodiscard]] inline color4 rbab() const {
+    [[nodiscard]] constexpr inline color4 rbab() const {
         return {this->r(), this->b(), this->a(), this->b()};
     }
 
-    [[nodiscard]] inline color4 rbaa() const {
+    [[nodiscard]] constexpr inline color4 rbaa() const {
         return {this->r(), this->b(), this->a(), this->a()};
     }
 
-    [[nodiscard]] inline color4 rarr() const {
+    [[nodiscard]] constexpr inline color4 rarr() const {
         return {this->r(), this->a(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color4 rarg() const {
+    [[nodiscard]] constexpr inline color4 rarg() const {
         return {this->r(), this->a(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color4 rarb() const {
+    [[nodiscard]] constexpr inline color4 rarb() const {
         return {this->r(), this->a(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color4 rara() const {
+    [[nodiscard]] constexpr inline color4 rara() const {
         return {this->r(), this->a(), this->r(), this->a()};
     }
 
-    [[nodiscard]] inline color4 ragr() const {
+    [[nodiscard]] constexpr inline color4 ragr() const {
         return {this->r(), this->a(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color4 ragg() const {
+    [[nodiscard]] constexpr inline color4 ragg() const {
         return {this->r(), this->a(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color4 ragb() const {
+    [[nodiscard]] constexpr inline color4 ragb() const {
         return {this->r(), this->a(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color4 raga() const {
+    [[nodiscard]] constexpr inline color4 raga() const {
         return {this->r(), this->a(), this->g(), this->a()};
     }
 
-    [[nodiscard]] inline color4 rabr() const {
+    [[nodiscard]] constexpr inline color4 rabr() const {
         return {this->r(), this->a(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color4 rabg() const {
+    [[nodiscard]] constexpr inline color4 rabg() const {
         return {this->r(), this->a(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color4 rabb() const {
+    [[nodiscard]] constexpr inline color4 rabb() const {
         return {this->r(), this->a(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color4 raba() const {
+    [[nodiscard]] constexpr inline color4 raba() const {
         return {this->r(), this->a(), this->b(), this->a()};
     }
 
-    [[nodiscard]] inline color4 raar() const {
+    [[nodiscard]] constexpr inline color4 raar() const {
         return {this->r(), this->a(), this->a(), this->r()};
     }
 
-    [[nodiscard]] inline color4 raag() const {
+    [[nodiscard]] constexpr inline color4 raag() const {
         return {this->r(), this->a(), this->a(), this->g()};
     }
 
-    [[nodiscard]] inline color4 raab() const {
+    [[nodiscard]] constexpr inline color4 raab() const {
         return {this->r(), this->a(), this->a(), this->b()};
     }
 
-    [[nodiscard]] inline color4 raaa() const {
+    [[nodiscard]] constexpr inline color4 raaa() const {
         return {this->r(), this->a(), this->a(), this->a()};
     }
 
-    [[nodiscard]] inline color4 grrr() const {
+    [[nodiscard]] constexpr inline color4 grrr() const {
         return {this->g(), this->r(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color4 grrg() const {
+    [[nodiscard]] constexpr inline color4 grrg() const {
         return {this->g(), this->r(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color4 grrb() const {
+    [[nodiscard]] constexpr inline color4 grrb() const {
         return {this->g(), this->r(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color4 grra() const {
+    [[nodiscard]] constexpr inline color4 grra() const {
         return {this->g(), this->r(), this->r(), this->a()};
     }
 
-    [[nodiscard]] inline color4 grgr() const {
+    [[nodiscard]] constexpr inline color4 grgr() const {
         return {this->g(), this->r(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color4 grgg() const {
+    [[nodiscard]] constexpr inline color4 grgg() const {
         return {this->g(), this->r(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color4 grgb() const {
+    [[nodiscard]] constexpr inline color4 grgb() const {
         return {this->g(), this->r(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color4 grga() const {
+    [[nodiscard]] constexpr inline color4 grga() const {
         return {this->g(), this->r(), this->g(), this->a()};
     }
 
-    [[nodiscard]] inline color4 grbr() const {
+    [[nodiscard]] constexpr inline color4 grbr() const {
         return {this->g(), this->r(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color4 grbg() const {
+    [[nodiscard]] constexpr inline color4 grbg() const {
         return {this->g(), this->r(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color4 grbb() const {
+    [[nodiscard]] constexpr inline color4 grbb() const {
         return {this->g(), this->r(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color4 grba() const {
+    [[nodiscard]] constexpr inline color4 grba() const {
         return {this->g(), this->r(), this->b(), this->a()};
     }
 
-    [[nodiscard]] inline color4 grar() const {
+    [[nodiscard]] constexpr inline color4 grar() const {
         return {this->g(), this->r(), this->a(), this->r()};
     }
 
-    [[nodiscard]] inline color4 grag() const {
+    [[nodiscard]] constexpr inline color4 grag() const {
         return {this->g(), this->r(), this->a(), this->g()};
     }
 
-    [[nodiscard]] inline color4 grab() const {
+    [[nodiscard]] constexpr inline color4 grab() const {
         return {this->g(), this->r(), this->a(), this->b()};
     }
 
-    [[nodiscard]] inline color4 graa() const {
+    [[nodiscard]] constexpr inline color4 graa() const {
         return {this->g(), this->r(), this->a(), this->a()};
     }
 
-    [[nodiscard]] inline color4 ggrr() const {
+    [[nodiscard]] constexpr inline color4 ggrr() const {
         return {this->g(), this->g(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color4 ggrg() const {
+    [[nodiscard]] constexpr inline color4 ggrg() const {
         return {this->g(), this->g(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color4 ggrb() const {
+    [[nodiscard]] constexpr inline color4 ggrb() const {
         return {this->g(), this->g(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color4 ggra() const {
+    [[nodiscard]] constexpr inline color4 ggra() const {
         return {this->g(), this->g(), this->r(), this->a()};
     }
 
-    [[nodiscard]] inline color4 gggr() const {
+    [[nodiscard]] constexpr inline color4 gggr() const {
         return {this->g(), this->g(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color4 gggg() const {
+    [[nodiscard]] constexpr inline color4 gggg() const {
         return {this->g(), this->g(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color4 gggb() const {
+    [[nodiscard]] constexpr inline color4 gggb() const {
         return {this->g(), this->g(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color4 ggga() const {
+    [[nodiscard]] constexpr inline color4 ggga() const {
         return {this->g(), this->g(), this->g(), this->a()};
     }
 
-    [[nodiscard]] inline color4 ggbr() const {
+    [[nodiscard]] constexpr inline color4 ggbr() const {
         return {this->g(), this->g(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color4 ggbg() const {
+    [[nodiscard]] constexpr inline color4 ggbg() const {
         return {this->g(), this->g(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color4 ggbb() const {
+    [[nodiscard]] constexpr inline color4 ggbb() const {
         return {this->g(), this->g(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color4 ggba() const {
+    [[nodiscard]] constexpr inline color4 ggba() const {
         return {this->g(), this->g(), this->b(), this->a()};
     }
 
-    [[nodiscard]] inline color4 ggar() const {
+    [[nodiscard]] constexpr inline color4 ggar() const {
         return {this->g(), this->g(), this->a(), this->r()};
     }
 
-    [[nodiscard]] inline color4 ggag() const {
+    [[nodiscard]] constexpr inline color4 ggag() const {
         return {this->g(), this->g(), this->a(), this->g()};
     }
 
-    [[nodiscard]] inline color4 ggab() const {
+    [[nodiscard]] constexpr inline color4 ggab() const {
         return {this->g(), this->g(), this->a(), this->b()};
     }
 
-    [[nodiscard]] inline color4 ggaa() const {
+    [[nodiscard]] constexpr inline color4 ggaa() const {
         return {this->g(), this->g(), this->a(), this->a()};
     }
 
-    [[nodiscard]] inline color4 gbrr() const {
+    [[nodiscard]] constexpr inline color4 gbrr() const {
         return {this->g(), this->b(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color4 gbrg() const {
+    [[nodiscard]] constexpr inline color4 gbrg() const {
         return {this->g(), this->b(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color4 gbrb() const {
+    [[nodiscard]] constexpr inline color4 gbrb() const {
         return {this->g(), this->b(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color4 gbra() const {
+    [[nodiscard]] constexpr inline color4 gbra() const {
         return {this->g(), this->b(), this->r(), this->a()};
     }
 
-    [[nodiscard]] inline color4 gbgr() const {
+    [[nodiscard]] constexpr inline color4 gbgr() const {
         return {this->g(), this->b(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color4 gbgg() const {
+    [[nodiscard]] constexpr inline color4 gbgg() const {
         return {this->g(), this->b(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color4 gbgb() const {
+    [[nodiscard]] constexpr inline color4 gbgb() const {
         return {this->g(), this->b(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color4 gbga() const {
+    [[nodiscard]] constexpr inline color4 gbga() const {
         return {this->g(), this->b(), this->g(), this->a()};
     }
 
-    [[nodiscard]] inline color4 gbbr() const {
+    [[nodiscard]] constexpr inline color4 gbbr() const {
         return {this->g(), this->b(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color4 gbbg() const {
+    [[nodiscard]] constexpr inline color4 gbbg() const {
         return {this->g(), this->b(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color4 gbbb() const {
+    [[nodiscard]] constexpr inline color4 gbbb() const {
         return {this->g(), this->b(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color4 gbba() const {
+    [[nodiscard]] constexpr inline color4 gbba() const {
         return {this->g(), this->b(), this->b(), this->a()};
     }
 
-    [[nodiscard]] inline color4 gbar() const {
+    [[nodiscard]] constexpr inline color4 gbar() const {
         return {this->g(), this->b(), this->a(), this->r()};
     }
 
-    [[nodiscard]] inline color4 gbag() const {
+    [[nodiscard]] constexpr inline color4 gbag() const {
         return {this->g(), this->b(), this->a(), this->g()};
     }
 
-    [[nodiscard]] inline color4 gbab() const {
+    [[nodiscard]] constexpr inline color4 gbab() const {
         return {this->g(), this->b(), this->a(), this->b()};
     }
 
-    [[nodiscard]] inline color4 gbaa() const {
+    [[nodiscard]] constexpr inline color4 gbaa() const {
         return {this->g(), this->b(), this->a(), this->a()};
     }
 
-    [[nodiscard]] inline color4 garr() const {
+    [[nodiscard]] constexpr inline color4 garr() const {
         return {this->g(), this->a(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color4 garg() const {
+    [[nodiscard]] constexpr inline color4 garg() const {
         return {this->g(), this->a(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color4 garb() const {
+    [[nodiscard]] constexpr inline color4 garb() const {
         return {this->g(), this->a(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color4 gara() const {
+    [[nodiscard]] constexpr inline color4 gara() const {
         return {this->g(), this->a(), this->r(), this->a()};
     }
 
-    [[nodiscard]] inline color4 gagr() const {
+    [[nodiscard]] constexpr inline color4 gagr() const {
         return {this->g(), this->a(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color4 gagg() const {
+    [[nodiscard]] constexpr inline color4 gagg() const {
         return {this->g(), this->a(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color4 gagb() const {
+    [[nodiscard]] constexpr inline color4 gagb() const {
         return {this->g(), this->a(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color4 gaga() const {
+    [[nodiscard]] constexpr inline color4 gaga() const {
         return {this->g(), this->a(), this->g(), this->a()};
     }
 
-    [[nodiscard]] inline color4 gabr() const {
+    [[nodiscard]] constexpr inline color4 gabr() const {
         return {this->g(), this->a(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color4 gabg() const {
+    [[nodiscard]] constexpr inline color4 gabg() const {
         return {this->g(), this->a(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color4 gabb() const {
+    [[nodiscard]] constexpr inline color4 gabb() const {
         return {this->g(), this->a(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color4 gaba() const {
+    [[nodiscard]] constexpr inline color4 gaba() const {
         return {this->g(), this->a(), this->b(), this->a()};
     }
 
-    [[nodiscard]] inline color4 gaar() const {
+    [[nodiscard]] constexpr inline color4 gaar() const {
         return {this->g(), this->a(), this->a(), this->r()};
     }
 
-    [[nodiscard]] inline color4 gaag() const {
+    [[nodiscard]] constexpr inline color4 gaag() const {
         return {this->g(), this->a(), this->a(), this->g()};
     }
 
-    [[nodiscard]] inline color4 gaab() const {
+    [[nodiscard]] constexpr inline color4 gaab() const {
         return {this->g(), this->a(), this->a(), this->b()};
     }
 
-    [[nodiscard]] inline color4 gaaa() const {
+    [[nodiscard]] constexpr inline color4 gaaa() const {
         return {this->g(), this->a(), this->a(), this->a()};
     }
 
-    [[nodiscard]] inline color4 brrr() const {
+    [[nodiscard]] constexpr inline color4 brrr() const {
         return {this->b(), this->r(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color4 brrg() const {
+    [[nodiscard]] constexpr inline color4 brrg() const {
         return {this->b(), this->r(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color4 brrb() const {
+    [[nodiscard]] constexpr inline color4 brrb() const {
         return {this->b(), this->r(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color4 brra() const {
+    [[nodiscard]] constexpr inline color4 brra() const {
         return {this->b(), this->r(), this->r(), this->a()};
     }
 
-    [[nodiscard]] inline color4 brgr() const {
+    [[nodiscard]] constexpr inline color4 brgr() const {
         return {this->b(), this->r(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color4 brgg() const {
+    [[nodiscard]] constexpr inline color4 brgg() const {
         return {this->b(), this->r(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color4 brgb() const {
+    [[nodiscard]] constexpr inline color4 brgb() const {
         return {this->b(), this->r(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color4 brga() const {
+    [[nodiscard]] constexpr inline color4 brga() const {
         return {this->b(), this->r(), this->g(), this->a()};
     }
 
-    [[nodiscard]] inline color4 brbr() const {
+    [[nodiscard]] constexpr inline color4 brbr() const {
         return {this->b(), this->r(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color4 brbg() const {
+    [[nodiscard]] constexpr inline color4 brbg() const {
         return {this->b(), this->r(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color4 brbb() const {
+    [[nodiscard]] constexpr inline color4 brbb() const {
         return {this->b(), this->r(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color4 brba() const {
+    [[nodiscard]] constexpr inline color4 brba() const {
         return {this->b(), this->r(), this->b(), this->a()};
     }
 
-    [[nodiscard]] inline color4 brar() const {
+    [[nodiscard]] constexpr inline color4 brar() const {
         return {this->b(), this->r(), this->a(), this->r()};
     }
 
-    [[nodiscard]] inline color4 brag() const {
+    [[nodiscard]] constexpr inline color4 brag() const {
         return {this->b(), this->r(), this->a(), this->g()};
     }
 
-    [[nodiscard]] inline color4 brab() const {
+    [[nodiscard]] constexpr inline color4 brab() const {
         return {this->b(), this->r(), this->a(), this->b()};
     }
 
-    [[nodiscard]] inline color4 braa() const {
+    [[nodiscard]] constexpr inline color4 braa() const {
         return {this->b(), this->r(), this->a(), this->a()};
     }
 
-    [[nodiscard]] inline color4 bgrr() const {
+    [[nodiscard]] constexpr inline color4 bgrr() const {
         return {this->b(), this->g(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color4 bgrg() const {
+    [[nodiscard]] constexpr inline color4 bgrg() const {
         return {this->b(), this->g(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color4 bgrb() const {
+    [[nodiscard]] constexpr inline color4 bgrb() const {
         return {this->b(), this->g(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color4 bgra() const {
+    [[nodiscard]] constexpr inline color4 bgra() const {
         return {this->b(), this->g(), this->r(), this->a()};
     }
 
-    [[nodiscard]] inline color4 bggr() const {
+    [[nodiscard]] constexpr inline color4 bggr() const {
         return {this->b(), this->g(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color4 bggg() const {
+    [[nodiscard]] constexpr inline color4 bggg() const {
         return {this->b(), this->g(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color4 bggb() const {
+    [[nodiscard]] constexpr inline color4 bggb() const {
         return {this->b(), this->g(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color4 bgga() const {
+    [[nodiscard]] constexpr inline color4 bgga() const {
         return {this->b(), this->g(), this->g(), this->a()};
     }
 
-    [[nodiscard]] inline color4 bgbr() const {
+    [[nodiscard]] constexpr inline color4 bgbr() const {
         return {this->b(), this->g(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color4 bgbg() const {
+    [[nodiscard]] constexpr inline color4 bgbg() const {
         return {this->b(), this->g(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color4 bgbb() const {
+    [[nodiscard]] constexpr inline color4 bgbb() const {
         return {this->b(), this->g(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color4 bgba() const {
+    [[nodiscard]] constexpr inline color4 bgba() const {
         return {this->b(), this->g(), this->b(), this->a()};
     }
 
-    [[nodiscard]] inline color4 bgar() const {
+    [[nodiscard]] constexpr inline color4 bgar() const {
         return {this->b(), this->g(), this->a(), this->r()};
     }
 
-    [[nodiscard]] inline color4 bgag() const {
+    [[nodiscard]] constexpr inline color4 bgag() const {
         return {this->b(), this->g(), this->a(), this->g()};
     }
 
-    [[nodiscard]] inline color4 bgab() const {
+    [[nodiscard]] constexpr inline color4 bgab() const {
         return {this->b(), this->g(), this->a(), this->b()};
     }
 
-    [[nodiscard]] inline color4 bgaa() const {
+    [[nodiscard]] constexpr inline color4 bgaa() const {
         return {this->b(), this->g(), this->a(), this->a()};
     }
 
-    [[nodiscard]] inline color4 bbrr() const {
+    [[nodiscard]] constexpr inline color4 bbrr() const {
         return {this->b(), this->b(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color4 bbrg() const {
+    [[nodiscard]] constexpr inline color4 bbrg() const {
         return {this->b(), this->b(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color4 bbrb() const {
+    [[nodiscard]] constexpr inline color4 bbrb() const {
         return {this->b(), this->b(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color4 bbra() const {
+    [[nodiscard]] constexpr inline color4 bbra() const {
         return {this->b(), this->b(), this->r(), this->a()};
     }
 
-    [[nodiscard]] inline color4 bbgr() const {
+    [[nodiscard]] constexpr inline color4 bbgr() const {
         return {this->b(), this->b(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color4 bbgg() const {
+    [[nodiscard]] constexpr inline color4 bbgg() const {
         return {this->b(), this->b(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color4 bbgb() const {
+    [[nodiscard]] constexpr inline color4 bbgb() const {
         return {this->b(), this->b(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color4 bbga() const {
+    [[nodiscard]] constexpr inline color4 bbga() const {
         return {this->b(), this->b(), this->g(), this->a()};
     }
 
-    [[nodiscard]] inline color4 bbbr() const {
+    [[nodiscard]] constexpr inline color4 bbbr() const {
         return {this->b(), this->b(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color4 bbbg() const {
+    [[nodiscard]] constexpr inline color4 bbbg() const {
         return {this->b(), this->b(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color4 bbbb() const {
+    [[nodiscard]] constexpr inline color4 bbbb() const {
         return {this->b(), this->b(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color4 bbba() const {
+    [[nodiscard]] constexpr inline color4 bbba() const {
         return {this->b(), this->b(), this->b(), this->a()};
     }
 
-    [[nodiscard]] inline color4 bbar() const {
+    [[nodiscard]] constexpr inline color4 bbar() const {
         return {this->b(), this->b(), this->a(), this->r()};
     }
 
-    [[nodiscard]] inline color4 bbag() const {
+    [[nodiscard]] constexpr inline color4 bbag() const {
         return {this->b(), this->b(), this->a(), this->g()};
     }
 
-    [[nodiscard]] inline color4 bbab() const {
+    [[nodiscard]] constexpr inline color4 bbab() const {
         return {this->b(), this->b(), this->a(), this->b()};
     }
 
-    [[nodiscard]] inline color4 bbaa() const {
+    [[nodiscard]] constexpr inline color4 bbaa() const {
         return {this->b(), this->b(), this->a(), this->a()};
     }
 
-    [[nodiscard]] inline color4 barr() const {
+    [[nodiscard]] constexpr inline color4 barr() const {
         return {this->b(), this->a(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color4 barg() const {
+    [[nodiscard]] constexpr inline color4 barg() const {
         return {this->b(), this->a(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color4 barb() const {
+    [[nodiscard]] constexpr inline color4 barb() const {
         return {this->b(), this->a(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color4 bara() const {
+    [[nodiscard]] constexpr inline color4 bara() const {
         return {this->b(), this->a(), this->r(), this->a()};
     }
 
-    [[nodiscard]] inline color4 bagr() const {
+    [[nodiscard]] constexpr inline color4 bagr() const {
         return {this->b(), this->a(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color4 bagg() const {
+    [[nodiscard]] constexpr inline color4 bagg() const {
         return {this->b(), this->a(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color4 bagb() const {
+    [[nodiscard]] constexpr inline color4 bagb() const {
         return {this->b(), this->a(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color4 baga() const {
+    [[nodiscard]] constexpr inline color4 baga() const {
         return {this->b(), this->a(), this->g(), this->a()};
     }
 
-    [[nodiscard]] inline color4 babr() const {
+    [[nodiscard]] constexpr inline color4 babr() const {
         return {this->b(), this->a(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color4 babg() const {
+    [[nodiscard]] constexpr inline color4 babg() const {
         return {this->b(), this->a(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color4 babb() const {
+    [[nodiscard]] constexpr inline color4 babb() const {
         return {this->b(), this->a(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color4 baba() const {
+    [[nodiscard]] constexpr inline color4 baba() const {
         return {this->b(), this->a(), this->b(), this->a()};
     }
 
-    [[nodiscard]] inline color4 baar() const {
+    [[nodiscard]] constexpr inline color4 baar() const {
         return {this->b(), this->a(), this->a(), this->r()};
     }
 
-    [[nodiscard]] inline color4 baag() const {
+    [[nodiscard]] constexpr inline color4 baag() const {
         return {this->b(), this->a(), this->a(), this->g()};
     }
 
-    [[nodiscard]] inline color4 baab() const {
+    [[nodiscard]] constexpr inline color4 baab() const {
         return {this->b(), this->a(), this->a(), this->b()};
     }
 
-    [[nodiscard]] inline color4 baaa() const {
+    [[nodiscard]] constexpr inline color4 baaa() const {
         return {this->b(), this->a(), this->a(), this->a()};
     }
 
-    [[nodiscard]] inline color4 arrr() const {
+    [[nodiscard]] constexpr inline color4 arrr() const {
         return {this->a(), this->r(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color4 arrg() const {
+    [[nodiscard]] constexpr inline color4 arrg() const {
         return {this->a(), this->r(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color4 arrb() const {
+    [[nodiscard]] constexpr inline color4 arrb() const {
         return {this->a(), this->r(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color4 arra() const {
+    [[nodiscard]] constexpr inline color4 arra() const {
         return {this->a(), this->r(), this->r(), this->a()};
     }
 
-    [[nodiscard]] inline color4 argr() const {
+    [[nodiscard]] constexpr inline color4 argr() const {
         return {this->a(), this->r(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color4 argg() const {
+    [[nodiscard]] constexpr inline color4 argg() const {
         return {this->a(), this->r(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color4 argb() const {
+    [[nodiscard]] constexpr inline color4 argb() const {
         return {this->a(), this->r(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color4 arga() const {
+    [[nodiscard]] constexpr inline color4 arga() const {
         return {this->a(), this->r(), this->g(), this->a()};
     }
 
-    [[nodiscard]] inline color4 arbr() const {
+    [[nodiscard]] constexpr inline color4 arbr() const {
         return {this->a(), this->r(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color4 arbg() const {
+    [[nodiscard]] constexpr inline color4 arbg() const {
         return {this->a(), this->r(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color4 arbb() const {
+    [[nodiscard]] constexpr inline color4 arbb() const {
         return {this->a(), this->r(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color4 arba() const {
+    [[nodiscard]] constexpr inline color4 arba() const {
         return {this->a(), this->r(), this->b(), this->a()};
     }
 
-    [[nodiscard]] inline color4 arar() const {
+    [[nodiscard]] constexpr inline color4 arar() const {
         return {this->a(), this->r(), this->a(), this->r()};
     }
 
-    [[nodiscard]] inline color4 arag() const {
+    [[nodiscard]] constexpr inline color4 arag() const {
         return {this->a(), this->r(), this->a(), this->g()};
     }
 
-    [[nodiscard]] inline color4 arab() const {
+    [[nodiscard]] constexpr inline color4 arab() const {
         return {this->a(), this->r(), this->a(), this->b()};
     }
 
-    [[nodiscard]] inline color4 araa() const {
+    [[nodiscard]] constexpr inline color4 araa() const {
         return {this->a(), this->r(), this->a(), this->a()};
     }
 
-    [[nodiscard]] inline color4 agrr() const {
+    [[nodiscard]] constexpr inline color4 agrr() const {
         return {this->a(), this->g(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color4 agrg() const {
+    [[nodiscard]] constexpr inline color4 agrg() const {
         return {this->a(), this->g(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color4 agrb() const {
+    [[nodiscard]] constexpr inline color4 agrb() const {
         return {this->a(), this->g(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color4 agra() const {
+    [[nodiscard]] constexpr inline color4 agra() const {
         return {this->a(), this->g(), this->r(), this->a()};
     }
 
-    [[nodiscard]] inline color4 aggr() const {
+    [[nodiscard]] constexpr inline color4 aggr() const {
         return {this->a(), this->g(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color4 aggg() const {
+    [[nodiscard]] constexpr inline color4 aggg() const {
         return {this->a(), this->g(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color4 aggb() const {
+    [[nodiscard]] constexpr inline color4 aggb() const {
         return {this->a(), this->g(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color4 agga() const {
+    [[nodiscard]] constexpr inline color4 agga() const {
         return {this->a(), this->g(), this->g(), this->a()};
     }
 
-    [[nodiscard]] inline color4 agbr() const {
+    [[nodiscard]] constexpr inline color4 agbr() const {
         return {this->a(), this->g(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color4 agbg() const {
+    [[nodiscard]] constexpr inline color4 agbg() const {
         return {this->a(), this->g(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color4 agbb() const {
+    [[nodiscard]] constexpr inline color4 agbb() const {
         return {this->a(), this->g(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color4 agba() const {
+    [[nodiscard]] constexpr inline color4 agba() const {
         return {this->a(), this->g(), this->b(), this->a()};
     }
 
-    [[nodiscard]] inline color4 agar() const {
+    [[nodiscard]] constexpr inline color4 agar() const {
         return {this->a(), this->g(), this->a(), this->r()};
     }
 
-    [[nodiscard]] inline color4 agag() const {
+    [[nodiscard]] constexpr inline color4 agag() const {
         return {this->a(), this->g(), this->a(), this->g()};
     }
 
-    [[nodiscard]] inline color4 agab() const {
+    [[nodiscard]] constexpr inline color4 agab() const {
         return {this->a(), this->g(), this->a(), this->b()};
     }
 
-    [[nodiscard]] inline color4 agaa() const {
+    [[nodiscard]] constexpr inline color4 agaa() const {
         return {this->a(), this->g(), this->a(), this->a()};
     }
 
-    [[nodiscard]] inline color4 abrr() const {
+    [[nodiscard]] constexpr inline color4 abrr() const {
         return {this->a(), this->b(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color4 abrg() const {
+    [[nodiscard]] constexpr inline color4 abrg() const {
         return {this->a(), this->b(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color4 abrb() const {
+    [[nodiscard]] constexpr inline color4 abrb() const {
         return {this->a(), this->b(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color4 abra() const {
+    [[nodiscard]] constexpr inline color4 abra() const {
         return {this->a(), this->b(), this->r(), this->a()};
     }
 
-    [[nodiscard]] inline color4 abgr() const {
+    [[nodiscard]] constexpr inline color4 abgr() const {
         return {this->a(), this->b(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color4 abgg() const {
+    [[nodiscard]] constexpr inline color4 abgg() const {
         return {this->a(), this->b(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color4 abgb() const {
+    [[nodiscard]] constexpr inline color4 abgb() const {
         return {this->a(), this->b(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color4 abga() const {
+    [[nodiscard]] constexpr inline color4 abga() const {
         return {this->a(), this->b(), this->g(), this->a()};
     }
 
-    [[nodiscard]] inline color4 abbr() const {
+    [[nodiscard]] constexpr inline color4 abbr() const {
         return {this->a(), this->b(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color4 abbg() const {
+    [[nodiscard]] constexpr inline color4 abbg() const {
         return {this->a(), this->b(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color4 abbb() const {
+    [[nodiscard]] constexpr inline color4 abbb() const {
         return {this->a(), this->b(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color4 abba() const {
+    [[nodiscard]] constexpr inline color4 abba() const {
         return {this->a(), this->b(), this->b(), this->a()};
     }
 
-    [[nodiscard]] inline color4 abar() const {
+    [[nodiscard]] constexpr inline color4 abar() const {
         return {this->a(), this->b(), this->a(), this->r()};
     }
 
-    [[nodiscard]] inline color4 abag() const {
+    [[nodiscard]] constexpr inline color4 abag() const {
         return {this->a(), this->b(), this->a(), this->g()};
     }
 
-    [[nodiscard]] inline color4 abab() const {
+    [[nodiscard]] constexpr inline color4 abab() const {
         return {this->a(), this->b(), this->a(), this->b()};
     }
 
-    [[nodiscard]] inline color4 abaa() const {
+    [[nodiscard]] constexpr inline color4 abaa() const {
         return {this->a(), this->b(), this->a(), this->a()};
     }
 
-    [[nodiscard]] inline color4 aarr() const {
+    [[nodiscard]] constexpr inline color4 aarr() const {
         return {this->a(), this->a(), this->r(), this->r()};
     }
 
-    [[nodiscard]] inline color4 aarg() const {
+    [[nodiscard]] constexpr inline color4 aarg() const {
         return {this->a(), this->a(), this->r(), this->g()};
     }
 
-    [[nodiscard]] inline color4 aarb() const {
+    [[nodiscard]] constexpr inline color4 aarb() const {
         return {this->a(), this->a(), this->r(), this->b()};
     }
 
-    [[nodiscard]] inline color4 aara() const {
+    [[nodiscard]] constexpr inline color4 aara() const {
         return {this->a(), this->a(), this->r(), this->a()};
     }
 
-    [[nodiscard]] inline color4 aagr() const {
+    [[nodiscard]] constexpr inline color4 aagr() const {
         return {this->a(), this->a(), this->g(), this->r()};
     }
 
-    [[nodiscard]] inline color4 aagg() const {
+    [[nodiscard]] constexpr inline color4 aagg() const {
         return {this->a(), this->a(), this->g(), this->g()};
     }
 
-    [[nodiscard]] inline color4 aagb() const {
+    [[nodiscard]] constexpr inline color4 aagb() const {
         return {this->a(), this->a(), this->g(), this->b()};
     }
 
-    [[nodiscard]] inline color4 aaga() const {
+    [[nodiscard]] constexpr inline color4 aaga() const {
         return {this->a(), this->a(), this->g(), this->a()};
     }
 
-    [[nodiscard]] inline color4 aabr() const {
+    [[nodiscard]] constexpr inline color4 aabr() const {
         return {this->a(), this->a(), this->b(), this->r()};
     }
 
-    [[nodiscard]] inline color4 aabg() const {
+    [[nodiscard]] constexpr inline color4 aabg() const {
         return {this->a(), this->a(), this->b(), this->g()};
     }
 
-    [[nodiscard]] inline color4 aabb() const {
+    [[nodiscard]] constexpr inline color4 aabb() const {
         return {this->a(), this->a(), this->b(), this->b()};
     }
 
-    [[nodiscard]] inline color4 aaba() const {
+    [[nodiscard]] constexpr inline color4 aaba() const {
         return {this->a(), this->a(), this->b(), this->a()};
     }
 
-    [[nodiscard]] inline color4 aaar() const {
+    [[nodiscard]] constexpr inline color4 aaar() const {
         return {this->a(), this->a(), this->a(), this->r()};
     }
 
-    [[nodiscard]] inline color4 aaag() const {
+    [[nodiscard]] constexpr inline color4 aaag() const {
         return {this->a(), this->a(), this->a(), this->g()};
     }
 
-    [[nodiscard]] inline color4 aaab() const {
+    [[nodiscard]] constexpr inline color4 aaab() const {
         return {this->a(), this->a(), this->a(), this->b()};
     }
 
-    [[nodiscard]] inline color4 aaaa() const {
+    [[nodiscard]] constexpr inline color4 aaaa() const {
         return {this->a(), this->a(), this->a(), this->a()};
     }
 
-    [[nodiscard]] inline float len2() const {
+    [[nodiscard]] constexpr inline float len2() const {
         return this->r() * this->r()+this->g() * this->g()+this->b() * this->b()+this->a() * this->a();
     }
 
-    [[nodiscard]] inline float len() const {
+    [[nodiscard]] constexpr inline float len() const {
         return std::sqrt(this->len2());
     }
 
-    [[nodiscard]] inline color4 abs() const {
+    [[nodiscard]] constexpr inline color4 abs() const {
         return {std::abs(this->r()), std::abs(this->g()), std::abs(this->b()), std::abs(this->a())};
     }
 
 };
 
-[[nodiscard]] inline color4 operator+(const color4& a, const color4& b) {
+[[nodiscard]] constexpr inline color4 operator+(const color4& a, const color4& b) {
     return {a.r() + b.r(), a.g() + b.g(), a.b() + b.b(), a.a() + b.a()};
 }
 
-[[nodiscard]] inline color4 operator-(const color4& a, const color4& b) {
+[[nodiscard]] constexpr inline color4 operator-(const color4& a, const color4& b) {
     return {a.r() - b.r(), a.g() - b.g(), a.b() - b.b(), a.a() - b.a()};
 }
 
-[[nodiscard]] inline color4 operator*(const color4& a, const color4& b) {
+[[nodiscard]] constexpr inline color4 operator*(const color4& a, const color4& b) {
     return {a.r() * b.r(), a.g() * b.g(), a.b() * b.b(), a.a() * b.a()};
 }
 
-[[nodiscard]] inline color4 operator/(const color4& a, const color4& b) {
+[[nodiscard]] constexpr inline color4 operator/(const color4& a, const color4& b) {
     return {a.r() / b.r(), a.g() / b.g(), a.b() / b.b(), a.a() / b.a()};
 }
 
-inline color4& operator+=(color4& a, const color4& b) {
+constexpr inline color4& operator+=(color4& a, const color4& b) {
     a.r() += b.r();
     a.g() += b.g();
     a.b() += b.b();
@@ -3545,7 +3545,7 @@ inline color4& operator+=(color4& a, const color4& b) {
     return a;
 }
 
-inline color4& operator-=(color4& a, const color4& b) {
+constexpr inline color4& operator-=(color4& a, const color4& b) {
     a.r() -= b.r();
     a.g() -= b.g();
     a.b() -= b.b();
@@ -3553,7 +3553,7 @@ inline color4& operator-=(color4& a, const color4& b) {
     return a;
 }
 
-inline color4& operator*=(color4& a, const color4& b) {
+constexpr inline color4& operator*=(color4& a, const color4& b) {
     a.r() *= b.r();
     a.g() *= b.g();
     a.b() *= b.b();
@@ -3561,7 +3561,7 @@ inline color4& operator*=(color4& a, const color4& b) {
     return a;
 }
 
-inline color4& operator/=(color4& a, const color4& b) {
+constexpr inline color4& operator/=(color4& a, const color4& b) {
     a.r() /= b.r();
     a.g() /= b.g();
     a.b() /= b.b();
@@ -3569,27 +3569,27 @@ inline color4& operator/=(color4& a, const color4& b) {
     return a;
 }
 
-[[nodiscard]] inline color4 operator-(const color4& vec) {
+[[nodiscard]] constexpr inline color4 operator-(const color4& vec) {
     return {-vec.r(), -vec.g(), -vec.b(), -vec.a()};
 }
 
-[[nodiscard]] inline color4 operator*(const color4& vec, float scl) {
+[[nodiscard]] constexpr inline color4 operator*(const color4& vec, float scl) {
     return {vec.r() * scl, vec.g() * scl, vec.b() * scl, vec.a() * scl};
 }
 
-[[nodiscard]] inline color4 operator*(float scl, const color4& vec) {
+[[nodiscard]] constexpr inline color4 operator*(float scl, const color4& vec) {
     return {scl * vec.r() , scl * vec.g() , scl * vec.b() , scl * vec.a() };
 }
 
-[[nodiscard]] inline color4 operator/(const color4& vec, float scl) {
+[[nodiscard]] constexpr inline color4 operator/(const color4& vec, float scl) {
     return {vec.r() / scl, vec.g() / scl, vec.b() / scl, vec.a() / scl};
 }
 
-[[nodiscard]] inline color4 operator/(float scl, const color4& vec) {
+[[nodiscard]] constexpr inline color4 operator/(float scl, const color4& vec) {
     return {scl / vec.r() , scl / vec.g() , scl / vec.b() , scl / vec.a() };
 }
 
-inline color4& operator*=(color4& vec, float scl) {
+constexpr inline color4& operator*=(color4& vec, float scl) {
     vec.r() *= scl;
     vec.g() *= scl;
     vec.b() *= scl;
@@ -3597,7 +3597,7 @@ inline color4& operator*=(color4& vec, float scl) {
 return vec;
 }
 
-inline color4& operator/=(color4& vec, float scl) {
+constexpr inline color4& operator/=(color4& vec, float scl) {
     vec.r() /= scl;
     vec.g() /= scl;
     vec.b() /= scl;
@@ -3609,14 +3609,14 @@ inline std::istream& operator>>(std::istream& stream, color4& vec) {
     return stream >> vec.r() >> vec.g() >> vec.b() >> vec.a();
 }
 
-[[nodiscard]] inline float dot(const color4 &a, const color4 &b) {
+[[nodiscard]] constexpr inline float dot(const color4 &a, const color4 &b) {
     return a.r() * b.r() + a.g() * b.g() + a.b() * b.b() + a.a() * b.a();
 }
-[[nodiscard]] inline color4 min(const color4& a, const color4& b) {
+[[nodiscard]] constexpr inline color4 min(const color4& a, const color4& b) {
     return {std::min(a.r(), b.r()), std::min(a.g(), b.g()), std::min(a.b(), b.b()), std::min(a.a(), b.a())};
 }
 
-[[nodiscard]] inline color4 max(const color4& a, const color4& b) {
+[[nodiscard]] constexpr inline color4 max(const color4& a, const color4& b) {
     return {std::max(a.r(), b.r()), std::max(a.g(), b.g()), std::max(a.b(), b.b()), std::max(a.a(), b.a())};
 }
 

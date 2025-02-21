@@ -47,7 +47,7 @@ struct Camera {
     geometry::vec3 forward;
     float fov_x = 0;
 
-    [[nodiscard]] inline float fov_y() const {
+    [[nodiscard]] constexpr inline float fov_y() const {
         return atan(tan(fov_x / 2) * height / width) * 2;
     }
 };

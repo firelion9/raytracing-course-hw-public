@@ -6,7 +6,7 @@ indent = " " * 4
 
 def gen_vector_pure_unary_op(vec_type, fields, op):
     res = (
-        f"[[nodiscard]] inline {vec_type} operator{op}(const {vec_type}& vec) " + "{\n"
+        f"[[nodiscard]] constexpr inline {vec_type} operator{op}(const {vec_type}& vec) " + "{\n"
     )
     res += (
         indent
@@ -20,7 +20,7 @@ def gen_vector_pure_unary_op(vec_type, fields, op):
 
 def gen_vector_pure_scalar_op(vec_type, fields, scalar_type, op):
     res = (
-        f"[[nodiscard]] inline {vec_type} operator{op}(const {vec_type}& vec, {scalar_type} scl) "
+        f"[[nodiscard]] constexpr inline {vec_type} operator{op}(const {vec_type}& vec, {scalar_type} scl) "
         + "{\n"
     )
     res += (
@@ -31,7 +31,7 @@ def gen_vector_pure_scalar_op(vec_type, fields, scalar_type, op):
     )
 
     res += (
-        f"[[nodiscard]] inline {vec_type} operator{op}({scalar_type} scl, const {vec_type}& vec) "
+        f"[[nodiscard]] constexpr inline {vec_type} operator{op}({scalar_type} scl, const {vec_type}& vec) "
         + "{\n"
     )
     res += (
@@ -46,7 +46,7 @@ def gen_vector_pure_scalar_op(vec_type, fields, scalar_type, op):
 
 def gen_vector_modifying_scalar_op(vec_type, fields, scalar_type, op):
     res = (
-        f"inline {vec_type}& operator{op}({vec_type}& vec, {scalar_type} scl) "
+        f"constexpr inline {vec_type}& operator{op}({vec_type}& vec, {scalar_type} scl) "
         + "{\n"
     )
     res += (
@@ -63,7 +63,7 @@ def gen_vector_modifying_scalar_op(vec_type, fields, scalar_type, op):
 
 def gen_vector_pure_op(vec_type, fields, op):
     res = (
-        f"[[nodiscard]] inline {vec_type} operator{op}(const {vec_type}& a, const {vec_type}& b) "
+        f"[[nodiscard]] constexpr inline {vec_type} operator{op}(const {vec_type}& a, const {vec_type}& b) "
         + "{\n"
     )
     res += (
@@ -78,7 +78,7 @@ def gen_vector_pure_op(vec_type, fields, op):
 
 def gen_vector_modifying_op(vec_type, fields, op):
     res = (
-        f"inline {vec_type}& operator{op}({vec_type}& a, const {vec_type}& b) " + "{\n"
+        f"constexpr inline {vec_type}& operator{op}({vec_type}& a, const {vec_type}& b) " + "{\n"
     )
     res += (
         textwrap.indent(
@@ -108,7 +108,7 @@ def gen_vector_stream_op(vec_type, fields, op, stream_type):
 
 def gen_vector_componentwise_fn(vec_type, fields, op):
     res = (
-        f"[[nodiscard]] inline {vec_type} {op}(const {vec_type}& a, const {vec_type}& b) "
+        f"[[nodiscard]] constexpr inline {vec_type} {op}(const {vec_type}& a, const {vec_type}& b) "
         + "{\n"
     )
     res += (
@@ -139,7 +139,7 @@ def gen_vector_ops(vec_type, fields, scalar_type):
     res += gen_vector_stream_op(vec_type, fields, ">>", "std::istream") + "\n"
 
     res += (
-        f"[[nodiscard]] inline {scalar_type} dot(const {vec_type} &a, const {vec_type} &b) "
+        f"[[nodiscard]] constexpr inline {scalar_type} dot(const {vec_type} &a, const {vec_type} &b) "
         + "{\n"
     )
     res += (
@@ -161,11 +161,11 @@ def gen_access_ops(fields, type_builder):
     scalar_type = type_builder(1)
     for f in range(len(fields)):
         accessor_name = fields[f]
-        res += f"[[nodiscard]] inline {scalar_type}& {accessor_name}() " + "{\n"
+        res += f"[[nodiscard]] constexpr inline {scalar_type}& {accessor_name}() " + "{\n"
         res += f"{indent}return this->val[{f}];\n"
         res += "}\n\n"
         res += (
-            f"[[nodiscard]] inline const {scalar_type}& {accessor_name}() const" + "{\n"
+            f"[[nodiscard]] constexpr inline const {scalar_type}& {accessor_name}() const" + "{\n"
         )
         res += f"{indent}return this->val[{f}];\n"
         res += "}\n\n"
@@ -176,7 +176,7 @@ def gen_access_ops(fields, type_builder):
         
         for comb in itertools.product(fields, repeat=l):
             accessor_name = "".join(comb)
-            res += f"[[nodiscard]] inline {res_type} {accessor_name}() const " + "{\n"
+            res += f"[[nodiscard]] constexpr inline {res_type} {accessor_name}() const " + "{\n"
             res += (
                 indent
                 + "return {"
@@ -204,7 +204,7 @@ def gen_conv_constructors(fields, type_builder):
         types = [type_builder(i) for i in part]
         if len(part) == len(fields) or len(part) == 1 or any(map(lambda t: t is None, types)):
                 continue
-        res += f"[[nodiscard]] inline {vec_type}("
+        res += f"[[nodiscard]] constexpr inline {vec_type}("
         res += ", ".join(map(lambda p: f"{p[1]} p{p[0]}", enumerate(types)))
         res += f") : {vec_type}" + "{"
         res += ", ".join(map(lambda p: ", ".join(map(lambda i: f"p{p[0]}.val[{i}]" if p[1] > 1 else f"p{p[0]}", range(p[1]))), enumerate(part)))
@@ -218,7 +218,7 @@ def gen_vec_member_ops(fields, type_builder):
     scalar_type = type_builder(1)
     vec_type = type_builder(len(fields))
 
-    res += f"[[nodiscard]] inline {scalar_type} len2() const " + "{\n"
+    res += f"[[nodiscard]] constexpr inline {scalar_type} len2() const " + "{\n"
     res += (
         f"{indent}return "
         + "+".join(map(lambda f: f"this->{f}() * this->{f}()", fields))
@@ -226,11 +226,11 @@ def gen_vec_member_ops(fields, type_builder):
     )
     res += "}\n\n"
 
-    res += f"[[nodiscard]] inline {scalar_type} len() const " + "{\n"
+    res += f"[[nodiscard]] constexpr inline {scalar_type} len() const " + "{\n"
     res += f"{indent}return std::sqrt(this->len2());\n"
     res += "}\n\n"
 
-    res += f"[[nodiscard]] inline {vec_type} abs() const " + "{\n"
+    res += f"[[nodiscard]] constexpr inline {vec_type} abs() const " + "{\n"
     res += (
         f"{indent}return " + "{"
         + ", ".join(map(lambda f: f"std::abs(this->{f}())", fields))
@@ -246,14 +246,14 @@ def _gen_vector_def(fields, vec_type, field_type, type_builder):
     res = f"struct {vec_type} " + "{\n"
     res += f"{indent}std::array<{field_type}, {len(fields)}> val;\n\n"
     res += (
-        f"{indent}[[nodiscard]] inline {vec_type}("
+        f"{indent}[[nodiscard]] constexpr inline {vec_type}("
         + ", ".join(map(lambda f: f"{field_type} {f} = 0", fields))
         + ") : val({"
         + ", ".join(fields)
         + "}) "
         + "{}\n"
     )
-    res += f"{indent}[[nodiscard]] inline {vec_type}(const {vec_type}&) = default;\n"
+    res += f"{indent}[[nodiscard]] constexpr inline {vec_type}(const {vec_type}&) = default;\n"
     res += f"{indent}inline {vec_type}& operator=(const {vec_type}&) = default;\n"
     res += textwrap.indent(gen_conv_constructors(fields, type_builder), indent)
     res += "\n" + textwrap.indent(
