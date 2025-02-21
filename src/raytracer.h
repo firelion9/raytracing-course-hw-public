@@ -15,6 +15,8 @@
 #include <variant>
 #include <vector>
 
+constexpr bool USE_MULTITHREADING = true;
+
 constexpr float EPS = 1e-4;
 
 struct ray_intersection_info {
@@ -307,35 +309,42 @@ trace_ray(const Scene &scene, const geometry::ray &ray, unsigned max_depth) {
                : scene.bg_color;
 }
 
+static inline void render_pixel(const Scene &scene, Image &image, int x, int y) {
+    auto ray = gen_ray(scene.camera, x, y);
+    image.at(x, y) = trace_ray(scene, ray, scene.ray_depth);
+}
+
 inline void run_raytracer(const Scene &scene, Image &image) {
     if (scene.ray_depth == 0)
         return;
 
-    // auto worker_count = std::thread::hardware_concurrency();
-    // std::vector<std::thread> workers;
-    // workers.reserve(worker_count);
-    // auto span = (image.data.size() + worker_count - 1) / worker_count;
-    // for (int i = 0; i < worker_count; ++i) {
-    //     workers.push_back(std::thread([&scene, &image, i, span]() {
-    //         auto begin = span * i,
-    //              end = std::min(span * (i + 1), image.data.size());
-    //         for (int j = begin; j < end; ++j) {
-    //             int x = j % image.width;
-    //             int y = j / image.width;
-    //         auto ray = gen_ray(scene.camera, x, y);
+    if constexpr (USE_MULTITHREADING) {
+        auto worker_count = std::thread::hardware_concurrency();
+        std::vector<std::thread> workers;
+        workers.reserve(worker_count);
+        auto span = (image.data.size() + worker_count - 1) / worker_count;
+        for (int i = 0; i < worker_count; ++i) {
+            workers.push_back(std::thread([&scene, &image, i, span]() {
+                auto begin = span * i,
+                     end = std::min(span * (i + 1), image.data.size());
+                for (int j = begin, x = j % image.width, y = j / image.width;
+                     j < end; ++j, ++x) {
+                    if (x == image.width) {
+                        x = 0;
+                        y += 1;
+                    }
+                    render_pixel(scene, image, x, y);
+                }
+            }));
+        }
 
-    //             image.at(x, y) = trace_ray(scene, ray, scene.ray_depth);
-    //         }
-    //     }));
-    // }
-
-    // for (auto &th : workers) th.join();
-
-    for (int y = 0; y < scene.camera.height; ++y) {
-        for (int x = 0; x < scene.camera.width; ++x) {
-            auto ray = gen_ray(scene.camera, x, y);
-
-            image.at(x, y) = trace_ray(scene, ray, scene.ray_depth);
+        for (auto &th : workers)
+            th.join();
+    } else {
+        for (int y = 0; y < scene.camera.height; ++y) {
+            for (int x = 0; x < scene.camera.width; ++x) {
+                render_pixel(scene, image, x, y);
+            }
         }
     }
 }
