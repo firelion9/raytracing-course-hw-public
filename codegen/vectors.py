@@ -120,6 +120,19 @@ def gen_vector_componentwise_fn(vec_type, fields, op):
 
     return res
 
+def gen_vector_componentwise_scalar_fn(vec_type, scalar_type, fields, op):
+    res = (
+        f"[[nodiscard]] constexpr inline {vec_type} {op}(const {vec_type}& a, {scalar_type} scl) "
+        + "{\n"
+    )
+    res += (
+        f"{indent}return " + "{"
+        + ", ".join(map(lambda f: f"std::{op}(a.{f}(), scl)", fields))
+        + "};\n"
+    )
+    res += "}\n"
+
+    return res
 
 def gen_vector_ops(vec_type, fields, scalar_type):
     res = ""
@@ -131,10 +144,10 @@ def gen_vector_ops(vec_type, fields, scalar_type):
         res += gen_vector_modifying_op(vec_type, fields, op + "=") + "\n"
 
     res += gen_vector_pure_unary_op(vec_type, fields, "-") + "\n"
-    res += gen_vector_pure_scalar_op(vec_type, fields, scalar_type, "*") + "\n"
-    res += gen_vector_pure_scalar_op(vec_type, fields, scalar_type, "/") + "\n"
-    res += gen_vector_modifying_scalar_op(vec_type, fields, scalar_type, "*=") + "\n"
-    res += gen_vector_modifying_scalar_op(vec_type, fields, scalar_type, "/=") + "\n"
+    for op in ops:
+        res += gen_vector_pure_scalar_op(vec_type, fields, scalar_type, op) + "\n"
+    for op in ops:
+        res += gen_vector_modifying_scalar_op(vec_type, fields, scalar_type, op + "=") + "\n"
 
     res += gen_vector_stream_op(vec_type, fields, ">>", "std::istream") + "\n"
 
@@ -151,6 +164,8 @@ def gen_vector_ops(vec_type, fields, scalar_type):
 
     res += gen_vector_componentwise_fn(vec_type, fields, "min") + "\n"
     res += gen_vector_componentwise_fn(vec_type, fields, "max") + "\n"
+    res += gen_vector_componentwise_fn(vec_type, fields, "pow") + "\n"
+    res += gen_vector_componentwise_scalar_fn(vec_type, scalar_type, fields, "pow") + "\n"
 
     return res
 

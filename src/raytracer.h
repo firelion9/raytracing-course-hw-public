@@ -5,7 +5,7 @@
 #include "image.h"
 #include "scene.h"
 #include <algorithm>
-#include <array>
+#include <atomic>
 #include <cassert>
 #include <cmath>
 #include <limits>
@@ -16,6 +16,7 @@
 #include <vector>
 
 constexpr bool USE_MULTITHREADING = true;
+constexpr size_t SPAN_SIZE = 256;
 
 constexpr float EPS = 1e-4;
 
@@ -309,9 +310,10 @@ trace_ray(const Scene &scene, const geometry::ray &ray, unsigned max_depth) {
                : scene.bg_color;
 }
 
-static inline void render_pixel(const Scene &scene, Image &image, int x, int y) {
+[[nodiscard]] static inline geometry::color3 render_pixel(const Scene &scene,
+                                                          int x, int y) {
     auto ray = gen_ray(scene.camera, x, y);
-    image.at(x, y) = trace_ray(scene, ray, scene.ray_depth);
+    return trace_ray(scene, ray, scene.ray_depth);
 }
 
 inline void run_raytracer(const Scene &scene, Image &image) {
@@ -322,18 +324,25 @@ inline void run_raytracer(const Scene &scene, Image &image) {
         auto worker_count = std::thread::hardware_concurrency();
         std::vector<std::thread> workers;
         workers.reserve(worker_count);
+        std::atomic_int next_span(0);
+        int span_count = (image.data.size() + SPAN_SIZE - 1) / SPAN_SIZE;
         auto span = (image.data.size() + worker_count - 1) / worker_count;
         for (int i = 0; i < worker_count; ++i) {
-            workers.push_back(std::thread([&scene, &image, i, span]() {
-                auto begin = span * i,
-                     end = std::min(span * (i + 1), image.data.size());
-                for (int j = begin, x = j % image.width, y = j / image.width;
-                     j < end; ++j, ++x) {
-                    if (x == image.width) {
-                        x = 0;
-                        y += 1;
+            workers.push_back(std::thread([&scene, &image, &next_span,
+                                           &span_count]() {
+                int span = -1;
+                while ((span = next_span.fetch_add(1)) < span_count) {
+                    auto begin = SPAN_SIZE * span,
+                         end = std::min(begin + SPAN_SIZE, image.data.size());
+                    for (int p_idx = begin, x = p_idx % image.width,
+                             y = p_idx / image.width;
+                         p_idx < end; ++p_idx, ++x) {
+                        if (x == image.width) {
+                            x = 0;
+                            y += 1;
+                        }
+                        image.set_pixel(p_idx, render_pixel(scene, x, y));
                     }
-                    render_pixel(scene, image, x, y);
                 }
             }));
         }
@@ -343,7 +352,7 @@ inline void run_raytracer(const Scene &scene, Image &image) {
     } else {
         for (int y = 0; y < scene.camera.height; ++y) {
             for (int x = 0; x < scene.camera.width; ++x) {
-                render_pixel(scene, image, x, y);
+                image.set_pixel(x, y, render_pixel(scene, x, y));
             }
         }
     }

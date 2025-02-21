@@ -97,6 +97,22 @@ constexpr inline vec2& operator/=(vec2& a, const vec2& b) {
     return {-vec.x(), -vec.y()};
 }
 
+[[nodiscard]] constexpr inline vec2 operator+(const vec2& vec, float scl) {
+    return {vec.x() + scl, vec.y() + scl};
+}
+
+[[nodiscard]] constexpr inline vec2 operator+(float scl, const vec2& vec) {
+    return {scl + vec.x() , scl + vec.y() };
+}
+
+[[nodiscard]] constexpr inline vec2 operator-(const vec2& vec, float scl) {
+    return {vec.x() - scl, vec.y() - scl};
+}
+
+[[nodiscard]] constexpr inline vec2 operator-(float scl, const vec2& vec) {
+    return {scl - vec.x() , scl - vec.y() };
+}
+
 [[nodiscard]] constexpr inline vec2 operator*(const vec2& vec, float scl) {
     return {vec.x() * scl, vec.y() * scl};
 }
@@ -111,6 +127,18 @@ constexpr inline vec2& operator/=(vec2& a, const vec2& b) {
 
 [[nodiscard]] constexpr inline vec2 operator/(float scl, const vec2& vec) {
     return {scl / vec.x() , scl / vec.y() };
+}
+
+constexpr inline vec2& operator+=(vec2& vec, float scl) {
+    vec.x() += scl;
+    vec.y() += scl;
+return vec;
+}
+
+constexpr inline vec2& operator-=(vec2& vec, float scl) {
+    vec.x() -= scl;
+    vec.y() -= scl;
+return vec;
 }
 
 constexpr inline vec2& operator*=(vec2& vec, float scl) {
@@ -138,6 +166,14 @@ inline std::istream& operator>>(std::istream& stream, vec2& vec) {
 
 [[nodiscard]] constexpr inline vec2 max(const vec2& a, const vec2& b) {
     return {std::max(a.x(), b.x()), std::max(a.y(), b.y())};
+}
+
+[[nodiscard]] constexpr inline vec2 pow(const vec2& a, const vec2& b) {
+    return {std::pow(a.x(), b.x()), std::pow(a.y(), b.y())};
+}
+
+[[nodiscard]] constexpr inline vec2 pow(const vec2& a, float scl) {
+    return {std::pow(a.x(), scl), std::pow(a.y(), scl)};
 }
 
 
@@ -382,6 +418,22 @@ constexpr inline vec3& operator/=(vec3& a, const vec3& b) {
     return {-vec.x(), -vec.y(), -vec.z()};
 }
 
+[[nodiscard]] constexpr inline vec3 operator+(const vec3& vec, float scl) {
+    return {vec.x() + scl, vec.y() + scl, vec.z() + scl};
+}
+
+[[nodiscard]] constexpr inline vec3 operator+(float scl, const vec3& vec) {
+    return {scl + vec.x() , scl + vec.y() , scl + vec.z() };
+}
+
+[[nodiscard]] constexpr inline vec3 operator-(const vec3& vec, float scl) {
+    return {vec.x() - scl, vec.y() - scl, vec.z() - scl};
+}
+
+[[nodiscard]] constexpr inline vec3 operator-(float scl, const vec3& vec) {
+    return {scl - vec.x() , scl - vec.y() , scl - vec.z() };
+}
+
 [[nodiscard]] constexpr inline vec3 operator*(const vec3& vec, float scl) {
     return {vec.x() * scl, vec.y() * scl, vec.z() * scl};
 }
@@ -396,6 +448,20 @@ constexpr inline vec3& operator/=(vec3& a, const vec3& b) {
 
 [[nodiscard]] constexpr inline vec3 operator/(float scl, const vec3& vec) {
     return {scl / vec.x() , scl / vec.y() , scl / vec.z() };
+}
+
+constexpr inline vec3& operator+=(vec3& vec, float scl) {
+    vec.x() += scl;
+    vec.y() += scl;
+    vec.z() += scl;
+return vec;
+}
+
+constexpr inline vec3& operator-=(vec3& vec, float scl) {
+    vec.x() -= scl;
+    vec.y() -= scl;
+    vec.z() -= scl;
+return vec;
 }
 
 constexpr inline vec3& operator*=(vec3& vec, float scl) {
@@ -425,6 +491,14 @@ inline std::istream& operator>>(std::istream& stream, vec3& vec) {
 
 [[nodiscard]] constexpr inline vec3 max(const vec3& a, const vec3& b) {
     return {std::max(a.x(), b.x()), std::max(a.y(), b.y()), std::max(a.z(), b.z())};
+}
+
+[[nodiscard]] constexpr inline vec3 pow(const vec3& a, const vec3& b) {
+    return {std::pow(a.x(), b.x()), std::pow(a.y(), b.y()), std::pow(a.z(), b.z())};
+}
+
+[[nodiscard]] constexpr inline vec3 pow(const vec3& a, float scl) {
+    return {std::pow(a.x(), scl), std::pow(a.y(), scl), std::pow(a.z(), scl)};
 }
 
 
@@ -1889,6 +1963,22 @@ constexpr inline vec4& operator/=(vec4& a, const vec4& b) {
     return {-vec.x(), -vec.y(), -vec.z(), -vec.w()};
 }
 
+[[nodiscard]] constexpr inline vec4 operator+(const vec4& vec, float scl) {
+    return {vec.x() + scl, vec.y() + scl, vec.z() + scl, vec.w() + scl};
+}
+
+[[nodiscard]] constexpr inline vec4 operator+(float scl, const vec4& vec) {
+    return {scl + vec.x() , scl + vec.y() , scl + vec.z() , scl + vec.w() };
+}
+
+[[nodiscard]] constexpr inline vec4 operator-(const vec4& vec, float scl) {
+    return {vec.x() - scl, vec.y() - scl, vec.z() - scl, vec.w() - scl};
+}
+
+[[nodiscard]] constexpr inline vec4 operator-(float scl, const vec4& vec) {
+    return {scl - vec.x() , scl - vec.y() , scl - vec.z() , scl - vec.w() };
+}
+
 [[nodiscard]] constexpr inline vec4 operator*(const vec4& vec, float scl) {
     return {vec.x() * scl, vec.y() * scl, vec.z() * scl, vec.w() * scl};
 }
@@ -1903,6 +1993,22 @@ constexpr inline vec4& operator/=(vec4& a, const vec4& b) {
 
 [[nodiscard]] constexpr inline vec4 operator/(float scl, const vec4& vec) {
     return {scl / vec.x() , scl / vec.y() , scl / vec.z() , scl / vec.w() };
+}
+
+constexpr inline vec4& operator+=(vec4& vec, float scl) {
+    vec.x() += scl;
+    vec.y() += scl;
+    vec.z() += scl;
+    vec.w() += scl;
+return vec;
+}
+
+constexpr inline vec4& operator-=(vec4& vec, float scl) {
+    vec.x() -= scl;
+    vec.y() -= scl;
+    vec.z() -= scl;
+    vec.w() -= scl;
+return vec;
 }
 
 constexpr inline vec4& operator*=(vec4& vec, float scl) {
@@ -1934,6 +2040,14 @@ inline std::istream& operator>>(std::istream& stream, vec4& vec) {
 
 [[nodiscard]] constexpr inline vec4 max(const vec4& a, const vec4& b) {
     return {std::max(a.x(), b.x()), std::max(a.y(), b.y()), std::max(a.z(), b.z()), std::max(a.w(), b.w())};
+}
+
+[[nodiscard]] constexpr inline vec4 pow(const vec4& a, const vec4& b) {
+    return {std::pow(a.x(), b.x()), std::pow(a.y(), b.y()), std::pow(a.z(), b.z()), std::pow(a.w(), b.w())};
+}
+
+[[nodiscard]] constexpr inline vec4 pow(const vec4& a, float scl) {
+    return {std::pow(a.x(), scl), std::pow(a.y(), scl), std::pow(a.z(), scl), std::pow(a.w(), scl)};
 }
 
 
@@ -2138,6 +2252,22 @@ constexpr inline color3& operator/=(color3& a, const color3& b) {
     return {-vec.r(), -vec.g(), -vec.b()};
 }
 
+[[nodiscard]] constexpr inline color3 operator+(const color3& vec, float scl) {
+    return {vec.r() + scl, vec.g() + scl, vec.b() + scl};
+}
+
+[[nodiscard]] constexpr inline color3 operator+(float scl, const color3& vec) {
+    return {scl + vec.r() , scl + vec.g() , scl + vec.b() };
+}
+
+[[nodiscard]] constexpr inline color3 operator-(const color3& vec, float scl) {
+    return {vec.r() - scl, vec.g() - scl, vec.b() - scl};
+}
+
+[[nodiscard]] constexpr inline color3 operator-(float scl, const color3& vec) {
+    return {scl - vec.r() , scl - vec.g() , scl - vec.b() };
+}
+
 [[nodiscard]] constexpr inline color3 operator*(const color3& vec, float scl) {
     return {vec.r() * scl, vec.g() * scl, vec.b() * scl};
 }
@@ -2152,6 +2282,20 @@ constexpr inline color3& operator/=(color3& a, const color3& b) {
 
 [[nodiscard]] constexpr inline color3 operator/(float scl, const color3& vec) {
     return {scl / vec.r() , scl / vec.g() , scl / vec.b() };
+}
+
+constexpr inline color3& operator+=(color3& vec, float scl) {
+    vec.r() += scl;
+    vec.g() += scl;
+    vec.b() += scl;
+return vec;
+}
+
+constexpr inline color3& operator-=(color3& vec, float scl) {
+    vec.r() -= scl;
+    vec.g() -= scl;
+    vec.b() -= scl;
+return vec;
 }
 
 constexpr inline color3& operator*=(color3& vec, float scl) {
@@ -2181,6 +2325,14 @@ inline std::istream& operator>>(std::istream& stream, color3& vec) {
 
 [[nodiscard]] constexpr inline color3 max(const color3& a, const color3& b) {
     return {std::max(a.r(), b.r()), std::max(a.g(), b.g()), std::max(a.b(), b.b())};
+}
+
+[[nodiscard]] constexpr inline color3 pow(const color3& a, const color3& b) {
+    return {std::pow(a.r(), b.r()), std::pow(a.g(), b.g()), std::pow(a.b(), b.b())};
+}
+
+[[nodiscard]] constexpr inline color3 pow(const color3& a, float scl) {
+    return {std::pow(a.r(), scl), std::pow(a.g(), scl), std::pow(a.b(), scl)};
 }
 
 
@@ -3573,6 +3725,22 @@ constexpr inline color4& operator/=(color4& a, const color4& b) {
     return {-vec.r(), -vec.g(), -vec.b(), -vec.a()};
 }
 
+[[nodiscard]] constexpr inline color4 operator+(const color4& vec, float scl) {
+    return {vec.r() + scl, vec.g() + scl, vec.b() + scl, vec.a() + scl};
+}
+
+[[nodiscard]] constexpr inline color4 operator+(float scl, const color4& vec) {
+    return {scl + vec.r() , scl + vec.g() , scl + vec.b() , scl + vec.a() };
+}
+
+[[nodiscard]] constexpr inline color4 operator-(const color4& vec, float scl) {
+    return {vec.r() - scl, vec.g() - scl, vec.b() - scl, vec.a() - scl};
+}
+
+[[nodiscard]] constexpr inline color4 operator-(float scl, const color4& vec) {
+    return {scl - vec.r() , scl - vec.g() , scl - vec.b() , scl - vec.a() };
+}
+
 [[nodiscard]] constexpr inline color4 operator*(const color4& vec, float scl) {
     return {vec.r() * scl, vec.g() * scl, vec.b() * scl, vec.a() * scl};
 }
@@ -3587,6 +3755,22 @@ constexpr inline color4& operator/=(color4& a, const color4& b) {
 
 [[nodiscard]] constexpr inline color4 operator/(float scl, const color4& vec) {
     return {scl / vec.r() , scl / vec.g() , scl / vec.b() , scl / vec.a() };
+}
+
+constexpr inline color4& operator+=(color4& vec, float scl) {
+    vec.r() += scl;
+    vec.g() += scl;
+    vec.b() += scl;
+    vec.a() += scl;
+return vec;
+}
+
+constexpr inline color4& operator-=(color4& vec, float scl) {
+    vec.r() -= scl;
+    vec.g() -= scl;
+    vec.b() -= scl;
+    vec.a() -= scl;
+return vec;
 }
 
 constexpr inline color4& operator*=(color4& vec, float scl) {
@@ -3618,6 +3802,14 @@ inline std::istream& operator>>(std::istream& stream, color4& vec) {
 
 [[nodiscard]] constexpr inline color4 max(const color4& a, const color4& b) {
     return {std::max(a.r(), b.r()), std::max(a.g(), b.g()), std::max(a.b(), b.b()), std::max(a.a(), b.a())};
+}
+
+[[nodiscard]] constexpr inline color4 pow(const color4& a, const color4& b) {
+    return {std::pow(a.r(), b.r()), std::pow(a.g(), b.g()), std::pow(a.b(), b.b()), std::pow(a.a(), b.a())};
+}
+
+[[nodiscard]] constexpr inline color4 pow(const color4& a, float scl) {
+    return {std::pow(a.r(), scl), std::pow(a.g(), scl), std::pow(a.b(), scl), std::pow(a.a(), scl)};
 }
 
 
