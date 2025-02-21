@@ -110,9 +110,7 @@ struct Scene {
             } else if (buf == "ROTATION") {
                 in >> res.objects.back().rotation;
             } else if (buf == "COLOR") {
-                auto &color = res.objects.back().color;
-                in >> color.r() >> color.g() >> color.b();
-                color.a() = 1.0;
+                in >> res.objects.back().color;
             }
             // endregion
             // region materials

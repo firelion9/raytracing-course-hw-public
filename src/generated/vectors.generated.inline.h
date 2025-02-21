@@ -3,8 +3,8 @@
 struct vec2 {
     std::array<float, 2> val;
 
-     inline vec2(float x = 0, float y = 0) : val({x, y}) {}
-    inline vec2(const vec2&) = default;
+    [[nodiscard]] inline vec2(float x = 0, float y = 0) : val({x, y}) {}
+    [[nodiscard]] inline vec2(const vec2&) = default;
     inline vec2& operator=(const vec2&) = default;
 
     [[nodiscard]] inline float& x() {
@@ -113,13 +113,13 @@ inline vec2& operator/=(vec2& a, const vec2& b) {
     return {scl / vec.x() , scl / vec.y() };
 }
 
-[[nodiscard]] inline vec2& operator*=(vec2& vec, float scl) {
+inline vec2& operator*=(vec2& vec, float scl) {
     vec.x() *= scl;
     vec.y() *= scl;
 return vec;
 }
 
-[[nodiscard]] inline vec2& operator/=(vec2& vec, float scl) {
+inline vec2& operator/=(vec2& vec, float scl) {
     vec.x() /= scl;
     vec.y() /= scl;
 return vec;
@@ -144,9 +144,13 @@ inline std::istream& operator>>(std::istream& stream, vec2& vec) {
 struct vec3 {
     std::array<float, 3> val;
 
-     inline vec3(float x = 0, float y = 0, float z = 0) : val({x, y, z}) {}
-    inline vec3(const vec3&) = default;
+    [[nodiscard]] inline vec3(float x = 0, float y = 0, float z = 0) : val({x, y, z}) {}
+    [[nodiscard]] inline vec3(const vec3&) = default;
     inline vec3& operator=(const vec3&) = default;
+    [[nodiscard]] inline vec3(vec2 p0, float p1) : vec3{p0.val[0], p0.val[1], p1} {}
+
+    [[nodiscard]] inline vec3(float p0, vec2 p1) : vec3{p0, p1.val[0], p1.val[1]} {}
+
 
     [[nodiscard]] inline float& x() {
         return this->val[0];
@@ -394,14 +398,14 @@ inline vec3& operator/=(vec3& a, const vec3& b) {
     return {scl / vec.x() , scl / vec.y() , scl / vec.z() };
 }
 
-[[nodiscard]] inline vec3& operator*=(vec3& vec, float scl) {
+inline vec3& operator*=(vec3& vec, float scl) {
     vec.x() *= scl;
     vec.y() *= scl;
     vec.z() *= scl;
 return vec;
 }
 
-[[nodiscard]] inline vec3& operator/=(vec3& vec, float scl) {
+inline vec3& operator/=(vec3& vec, float scl) {
     vec.x() /= scl;
     vec.y() /= scl;
     vec.z() /= scl;
@@ -427,9 +431,21 @@ inline std::istream& operator>>(std::istream& stream, vec3& vec) {
 struct vec4 {
     std::array<float, 4> val;
 
-     inline vec4(float x = 0, float y = 0, float z = 0, float w = 0) : val({x, y, z, w}) {}
-    inline vec4(const vec4&) = default;
+    [[nodiscard]] inline vec4(float x = 0, float y = 0, float z = 0, float w = 0) : val({x, y, z, w}) {}
+    [[nodiscard]] inline vec4(const vec4&) = default;
     inline vec4& operator=(const vec4&) = default;
+    [[nodiscard]] inline vec4(vec2 p0, float p1, float p2) : vec4{p0.val[0], p0.val[1], p1, p2} {}
+
+    [[nodiscard]] inline vec4(float p0, vec2 p1, float p2) : vec4{p0, p1.val[0], p1.val[1], p2} {}
+
+    [[nodiscard]] inline vec4(vec3 p0, float p1) : vec4{p0.val[0], p0.val[1], p0.val[2], p1} {}
+
+    [[nodiscard]] inline vec4(float p0, float p1, vec2 p2) : vec4{p0, p1, p2.val[0], p2.val[1]} {}
+
+    [[nodiscard]] inline vec4(vec2 p0, vec2 p1) : vec4{p0.val[0], p0.val[1], p1.val[0], p1.val[1]} {}
+
+    [[nodiscard]] inline vec4(float p0, vec3 p1) : vec4{p0, p1.val[0], p1.val[1], p1.val[2]} {}
+
 
     [[nodiscard]] inline float& x() {
         return this->val[0];
@@ -1889,7 +1905,7 @@ inline vec4& operator/=(vec4& a, const vec4& b) {
     return {scl / vec.x() , scl / vec.y() , scl / vec.z() , scl / vec.w() };
 }
 
-[[nodiscard]] inline vec4& operator*=(vec4& vec, float scl) {
+inline vec4& operator*=(vec4& vec, float scl) {
     vec.x() *= scl;
     vec.y() *= scl;
     vec.z() *= scl;
@@ -1897,7 +1913,7 @@ inline vec4& operator/=(vec4& a, const vec4& b) {
 return vec;
 }
 
-[[nodiscard]] inline vec4& operator/=(vec4& vec, float scl) {
+inline vec4& operator/=(vec4& vec, float scl) {
     vec.x() /= scl;
     vec.y() /= scl;
     vec.z() /= scl;
@@ -1924,8 +1940,8 @@ inline std::istream& operator>>(std::istream& stream, vec4& vec) {
 struct color3 {
     std::array<float, 3> val;
 
-     inline color3(float r = 0, float g = 0, float b = 0) : val({r, g, b}) {}
-    inline color3(const color3&) = default;
+    [[nodiscard]] inline color3(float r = 0, float g = 0, float b = 0) : val({r, g, b}) {}
+    [[nodiscard]] inline color3(const color3&) = default;
     inline color3& operator=(const color3&) = default;
 
     [[nodiscard]] inline float& r() {
@@ -2138,14 +2154,14 @@ inline color3& operator/=(color3& a, const color3& b) {
     return {scl / vec.r() , scl / vec.g() , scl / vec.b() };
 }
 
-[[nodiscard]] inline color3& operator*=(color3& vec, float scl) {
+inline color3& operator*=(color3& vec, float scl) {
     vec.r() *= scl;
     vec.g() *= scl;
     vec.b() *= scl;
 return vec;
 }
 
-[[nodiscard]] inline color3& operator/=(color3& vec, float scl) {
+inline color3& operator/=(color3& vec, float scl) {
     vec.r() /= scl;
     vec.g() /= scl;
     vec.b() /= scl;
@@ -2171,9 +2187,13 @@ inline std::istream& operator>>(std::istream& stream, color3& vec) {
 struct color4 {
     std::array<float, 4> val;
 
-     inline color4(float r = 0, float g = 0, float b = 0, float a = 0) : val({r, g, b, a}) {}
-    inline color4(const color4&) = default;
+    [[nodiscard]] inline color4(float r = 0, float g = 0, float b = 0, float a = 0) : val({r, g, b, a}) {}
+    [[nodiscard]] inline color4(const color4&) = default;
     inline color4& operator=(const color4&) = default;
+    [[nodiscard]] inline color4(color3 p0, float p1) : color4{p0.val[0], p0.val[1], p0.val[2], p1} {}
+
+    [[nodiscard]] inline color4(float p0, color3 p1) : color4{p0, p1.val[0], p1.val[1], p1.val[2]} {}
+
 
     [[nodiscard]] inline float& r() {
         return this->val[0];
@@ -3569,7 +3589,7 @@ inline color4& operator/=(color4& a, const color4& b) {
     return {scl / vec.r() , scl / vec.g() , scl / vec.b() , scl / vec.a() };
 }
 
-[[nodiscard]] inline color4& operator*=(color4& vec, float scl) {
+inline color4& operator*=(color4& vec, float scl) {
     vec.r() *= scl;
     vec.g() *= scl;
     vec.b() *= scl;
@@ -3577,7 +3597,7 @@ inline color4& operator/=(color4& a, const color4& b) {
 return vec;
 }
 
-[[nodiscard]] inline color4& operator/=(color4& vec, float scl) {
+inline color4& operator/=(color4& vec, float scl) {
     vec.r() /= scl;
     vec.g() /= scl;
     vec.b() /= scl;
@@ -3600,8 +3620,4 @@ inline std::istream& operator>>(std::istream& stream, color4& vec) {
     return {std::max(a.r(), b.r()), std::max(a.g(), b.g()), std::max(a.b(), b.b()), std::max(a.a(), b.a())};
 }
 
-
-template<class vec_type> [[nodiscard]] inline vec_type norm(const vec_type& vec) {
-    return vec / vec.len();
-}
 

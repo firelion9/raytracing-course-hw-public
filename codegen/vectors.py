@@ -46,7 +46,7 @@ def gen_vector_pure_scalar_op(vec_type, fields, scalar_type, op):
 
 def gen_vector_modifying_scalar_op(vec_type, fields, scalar_type, op):
     res = (
-        f"[[nodiscard]] inline {vec_type}& operator{op}({vec_type}& vec, {scalar_type} scl) "
+        f"inline {vec_type}& operator{op}({vec_type}& vec, {scalar_type} scl) "
         + "{\n"
     )
     res += (
@@ -187,6 +187,31 @@ def gen_access_ops(fields, type_builder):
 
     return res
 
+def gen_partitions(n):
+    if n == 0:
+        yield []
+    else:
+        for i in range(1, n + 1):
+            for part in gen_partitions(n - i):
+                part.append(i)
+                yield part
+
+def gen_conv_constructors(fields, type_builder):
+    res = ""
+
+    vec_type = type_builder(len(fields))
+    for part in gen_partitions(len(fields)):
+        types = [type_builder(i) for i in part]
+        if len(part) == len(fields) or len(part) == 1 or any(map(lambda t: t is None, types)):
+                continue
+        res += f"[[nodiscard]] inline {vec_type}("
+        res += ", ".join(map(lambda p: f"{p[1]} p{p[0]}", enumerate(types)))
+        res += f") : {vec_type}" + "{"
+        res += ", ".join(map(lambda p: ", ".join(map(lambda i: f"p{p[0]}.val[{i}]" if p[1] > 1 else f"p{p[0]}", range(p[1]))), enumerate(part)))
+        res += "} {}\n\n"
+
+    return res
+
 
 def gen_vec_member_ops(fields, type_builder):
     res = gen_access_ops(fields, type_builder)
@@ -221,15 +246,16 @@ def _gen_vector_def(fields, vec_type, field_type, type_builder):
     res = f"struct {vec_type} " + "{\n"
     res += f"{indent}std::array<{field_type}, {len(fields)}> val;\n\n"
     res += (
-        f"{indent} inline {vec_type}("
+        f"{indent}[[nodiscard]] inline {vec_type}("
         + ", ".join(map(lambda f: f"{field_type} {f} = 0", fields))
         + ") : val({"
         + ", ".join(fields)
         + "}) "
         + "{}\n"
     )
-    res += f"{indent}inline {vec_type}(const {vec_type}&) = default;\n"
+    res += f"{indent}[[nodiscard]] inline {vec_type}(const {vec_type}&) = default;\n"
     res += f"{indent}inline {vec_type}& operator=(const {vec_type}&) = default;\n"
+    res += textwrap.indent(gen_conv_constructors(fields, type_builder), indent)
     res += "\n" + textwrap.indent(
         gen_vec_member_ops(fields, type_builder),
         indent,
@@ -262,12 +288,5 @@ def generate():
     res += gen_vector_def(4, "float") + "\n"
     res += gen_color_def(3, "float") + "\n"
     res += gen_color_def(4, "float") + "\n"
-
-    res += (
-        f"template<class vec_type> [[nodiscard]] inline vec_type norm(const vec_type& vec) "
-        + "{\n"
-    )
-    res += f"{indent}return vec / vec.len();\n"
-    res += "}\n\n"
 
     return res

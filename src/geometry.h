@@ -1,6 +1,7 @@
 #ifndef GEOMETRY_H
 #define GEOMETRY_H
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <iostream>
@@ -15,6 +16,16 @@ namespace geometry {
         a.z() * b.x() - a.x() * b.z(),
         a.x() * b.y() - a.y() * b.x(),
     };
+}
+
+template <class vec_type>
+[[nodiscard]] inline vec_type norm(const vec_type &vec) {
+    return vec / vec.len();
+}
+
+template <class vec_type>
+[[nodiscard]] vec_type reflect(const vec_type &normal, const vec_type &in_dir) {
+    return in_dir - 2 * normal * dot(in_dir, normal);
 }
 
 struct quaternion;
@@ -126,17 +137,48 @@ enum ShapeType {
 
 struct plane {
     vec3 normal;
+
+    inline vec3 normal_at(const vec3 &pos) const { return normal; }
 };
 
 struct ellipsoid {
     vec3 radius;
+
+    inline vec3 normal_at(const vec3 &pos) const {
+        return norm(pos / radius);
+    }
 };
 
 struct box {
     vec3 half_size;
+
+    inline vec3 normal_at(const vec3 &pos) const {
+        vec3 npos = pos / half_size;
+        vec3 res = npos.abs();
+        auto axis = std::max_element(res.val.begin(), res.val.end());
+        res = {0, 0, 0};
+        *axis = std::signbit(npos.val[axis - &res.val[0]]) ? -1 : 1;
+        return res;
+    }
 };
 
 using shape = std::variant<plane, ellipsoid, box>;
+
+[[nodiscard]] inline vec3 normal_at(const geometry::shape &shape,
+                                    const vec3 &pos) {
+    return std::visit(
+        [&pos](const auto &shape) { return shape.normal_at(pos); }, shape);
+}
+
+template <class shape_type, class vec_type>
+geometry::ray reflect(const shape_type &shape, const geometry::ray &ray,
+                      float t) {
+    auto base = ray.at(t);
+    auto normal = shape.normal_at(base);
+    auto out_dir = reflect(ray.dir, normal);
+
+    return {base, out_dir};
+}
 
 struct diffuse {};
 
@@ -151,10 +193,14 @@ using material = std::variant<diffuse, metallic, dielectric>;
 struct Object {
     vec3 position;
     quaternion rotation = quaternion(0, 0, 0, 1);
-    color4 color = {0, 0, 0, 1};
+    color3 color = {0, 0, 0};
 
     geometry::shape shape;
     geometry::material material;
+
+    [[nodiscard]] inline vec3 normal_at(const vec3 &pos) const {
+        return rotation * geometry::normal_at(shape, rotation.conj() * (pos - position));
+    }
 };
 
 struct directed_light {
