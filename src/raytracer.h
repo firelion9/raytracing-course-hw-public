@@ -266,8 +266,7 @@ shade(const Scene &scene, const geometry::ray &ray,
     geometry::color3 res =
         trace_ray(scene,
                   {pos, geometry::reflect(intersection_info.normal, ray.dir)},
-                  max_depth) *
-        r;
+                  max_depth);
 
     float eta = intersection_info.is_inside ? material.ior : 1 / material.ior;
     auto sin_theta2_2 =
@@ -279,7 +278,7 @@ shade(const Scene &scene, const geometry::ray &ray,
             (eta * dot(intersection_info.normal, -ray.dir) - cos_theta2) *
                 intersection_info.normal);
 
-        res += (1 - r) * trace_ray(scene, {pos, dir1}, max_depth) *
+        res = r * res + (1 - r) * trace_ray(scene, {pos, dir1}, max_depth) *
                (intersection_info.is_inside ? geometry::color3{1, 1, 1}
                                             : intersection_info.obj->color);
     }
