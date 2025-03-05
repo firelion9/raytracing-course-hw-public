@@ -299,7 +299,7 @@ shade(const Scene &scene, const geometry::ray &ray,
 [[nodiscard]] constexpr static inline geometry::color3
 trace_ray(const Scene &scene, const geometry::ray &ray, unsigned max_depth) {
     if (max_depth == 0) {
-        return scene.bg_color;
+        return {0, 0, 0};
     }
 
     ray_cast_res trace_res = cast_ray(scene, ray);
