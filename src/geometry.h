@@ -167,7 +167,7 @@ struct plane {
 struct ellipsoid {
     vec3 radius;
 
-    [[nodiscard]] constexpr inline vec3 normal_at(const vec3 &pos) const { return norm(pos / radius); }
+    [[nodiscard]] constexpr inline vec3 normal_at(const vec3 &pos) const { return norm(pos / radius / radius); }
 };
 
 struct box {
