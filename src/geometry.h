@@ -101,7 +101,7 @@ struct quaternion {
 
 [[nodiscard]] constexpr inline quaternion operator*(float scl,
                                                     const quaternion &a) {
-    return quaternion(scl * a.v() * scl, scl * a.w());
+    return quaternion(scl * a.v(), scl * a.w());
 }
 
 [[nodiscard]] constexpr inline quaternion operator/(const quaternion &a,
@@ -213,7 +213,7 @@ using material = std::variant<diffuse, metallic, dielectric>;
 
 struct Object {
     vec3 position;
-    quaternion rotation = quaternion(0, 0, 0, 1);
+    quaternion rotation = quaternion(geometry::vec3(0, 0, 0), 1);
     color3 color = {0, 0, 0};
 
     geometry::shape shape;
