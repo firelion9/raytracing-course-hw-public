@@ -18,6 +18,8 @@
 #include <variant>
 #include <vector>
 
+// region config
+
 constexpr bool USE_MULTITHREADING = true;
 constexpr size_t SPAN_SIZE = 256;
 
@@ -29,6 +31,10 @@ constexpr struct monte_carlo_token_t {
 } monte_carlo_token;
 
 constexpr auto ALGORITHM_TOKEN = monte_carlo_token;
+
+// endregion
+
+// region internal structures
 
 struct RaytracerThreadContext {
     const Scene &scene;
@@ -76,15 +82,20 @@ struct ray_intersection_info {
 using intersection_res = std::optional<float>;
 using ray_cast_res = std::optional<ray_intersection_info>;
 
+// endregion
+
 [[nodiscard]] constexpr static inline geometry::color3
 trace_ray(RaytracerThreadContext &context, const geometry::ray &ray,
           unsigned max_depth);
 
-template <class Num> [[nodiscard]] constexpr inline Num pow2(Num x) {
+// region utilities
+
+template <class Num> [[nodiscard]] static constexpr inline Num pow2(Num x) {
     return x * x;
 }
 
-template <size_t p, class Num> [[nodiscard]] constexpr inline Num pow(Num x) {
+template <size_t p, class Num>
+[[nodiscard]] static constexpr inline Num pow(Num x) {
     if constexpr (p == 0) {
         return 1;
     }
@@ -95,12 +106,6 @@ template <size_t p, class Num> [[nodiscard]] constexpr inline Num pow(Num x) {
     }
 }
 
-#define push_t(t, min_dst)                                                     \
-    do {                                                                       \
-        if (t >= min_dst && (!res.has_value() || t < *res))                    \
-            res = t;                                                           \
-    } while (false)
-
 static inline std::ostream &operator<<(std::ostream &out,
                                        const geometry::vec3 &v) {
     return out << "(" << v.x() << ", " << v.y() << ", " << v.z() << ")";
@@ -110,6 +115,26 @@ static inline std::ostream &operator<<(std::ostream &out,
                                        const geometry::ray &v) {
     return out << v.start << "-" << v.dir << "->";
 }
+
+// endregion
+
+// region intersections
+
+template <class vec_type>
+[[nodiscard]] constexpr static inline float max_component(const vec_type &vec) {
+    return *std::max_element(vec.val.begin(), vec.val.end());
+}
+
+template <class vec_type>
+[[nodiscard]] constexpr static inline float min_component(const vec_type &vec) {
+    return *std::min_element(vec.val.begin(), vec.val.end());
+}
+
+#define push_t(t, min_dst)                                                     \
+    do {                                                                       \
+        if (t >= min_dst && (!res.has_value() || t < *res))                    \
+            res = t;                                                           \
+    } while (false)
 
 [[nodiscard]] constexpr static inline intersection_res
 intersect_ray_obj(const geometry::ray &ray, const geometry::plane &obj,
@@ -141,16 +166,6 @@ intersect_ray_obj(const geometry::ray &ray, const geometry::ellipsoid &obj,
     push_t(t2, min_dst);
 
     return res;
-}
-
-template <class vec_type>
-[[nodiscard]] constexpr static inline float max_component(const vec_type &vec) {
-    return *std::max_element(vec.val.begin(), vec.val.end());
-}
-
-template <class vec_type>
-[[nodiscard]] constexpr static inline float min_component(const vec_type &vec) {
-    return *std::min_element(vec.val.begin(), vec.val.end());
 }
 
 [[nodiscard]] constexpr static inline intersection_res
@@ -190,6 +205,24 @@ intersect(const geometry::ray &ray, const geometry::Object &obj,
                               obj, min_dst);
 }
 
+static inline void update_intersection(ray_cast_res &res,
+                                       const geometry::ray &ray,
+                                       const geometry::Object &obj,
+                                       const intersection_res &intersection,
+                                       float max_dst) {
+    if (!intersection.has_value() || *intersection > max_dst)
+        return;
+
+    if (!res.has_value() || res->t > *intersection) {
+        auto pos = ray.at(*intersection);
+        auto normal = obj.normal_at(pos);
+        auto is_inside = geometry::dot(normal, ray.dir) > 0;
+        res = {is_inside ? -normal : normal, *intersection, &obj, is_inside};
+    }
+}
+
+// endregion
+
 [[nodiscard]] constexpr static inline geometry::ray
 gen_ray(const Camera &camera, int x, int y) {
     auto dir = norm((2 * (x + 0.5) / camera.width - 1) * tan(camera.fov_x / 2) *
@@ -214,22 +247,6 @@ gen_ray(RaytracerThreadContext &context, int x, int y) {
     return {camera.position, dir};
 }
 
-static inline void update_intersection(ray_cast_res &res,
-                                       const geometry::ray &ray,
-                                       const geometry::Object &obj,
-                                       const intersection_res &intersection,
-                                       float max_dst) {
-    if (!intersection.has_value() || *intersection > max_dst)
-        return;
-
-    if (!res.has_value() || res->t > *intersection) {
-        auto pos = ray.at(*intersection);
-        auto normal = obj.normal_at(pos);
-        auto is_inside = geometry::dot(normal, ray.dir) > 0;
-        res = {is_inside ? -normal : normal, *intersection, &obj, is_inside};
-    }
-}
-
 [[nodiscard]] static inline ray_cast_res
 cast_ray(const RaytracerThreadContext &context, const geometry::ray &ray,
          float max_dst = std::numeric_limits<float>::infinity(),
@@ -243,6 +260,8 @@ cast_ray(const RaytracerThreadContext &context, const geometry::ray &ray,
 
     return res;
 }
+
+// region approx lighting
 
 [[nodiscard]] static inline geometry::color3
 light_at_from(const RaytracerThreadContext &context, const geometry::vec3 &pos,
@@ -346,6 +365,10 @@ shade(RaytracerThreadContext &context, const geometry::ray &ray,
     return res;
 }
 
+// endregion
+
+// region Monte-Carlo lighting
+
 [[nodiscard]]
 static inline geometry::color3
 shade(RaytracerThreadContext &context, const geometry::ray &ray,
@@ -404,6 +427,8 @@ shade(RaytracerThreadContext &context, const geometry::ray &ray,
                                             : intersection_info.obj->color);
     }
 }
+
+// endregion
 
 [[nodiscard]] constexpr static inline geometry::color3
 shade(RaytracerThreadContext &context, const geometry::ray &ray,
