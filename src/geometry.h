@@ -201,11 +201,15 @@ template <class shape_type, class vec_type>
     return {base, out_dir};
 }
 
-struct diffuse {};
+struct material_base {
+    color3 emission = {0, 0, 0};
+};
 
-struct metallic {};
+struct diffuse : material_base {};
 
-struct dielectric {
+struct metallic : material_base {};
+
+struct dielectric : material_base {
     float ior = 0;
 };
 

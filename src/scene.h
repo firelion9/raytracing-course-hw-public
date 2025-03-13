@@ -56,6 +56,7 @@ struct Scene {
     geometry::color3 bg_color;
     geometry::color3 ambient_light{1, 1, 1};
     unsigned ray_depth = 1;
+    unsigned samples = 1;
     Camera camera;
     std::vector<geometry::Object> objects;
     std::vector<geometry::LightSource> lights;
@@ -72,6 +73,8 @@ struct Scene {
             // region general scene config
             if (buf == "RAY_DEPTH") {
                 in >> res.ray_depth;
+            } else if (buf == "SAMPLES") {
+                in >> res.samples;
             } else if (buf == "BG_COLOR") {
                 in >> res.bg_color;
             } else if (buf == "AMBIENT_LIGHT") {
@@ -127,6 +130,8 @@ struct Scene {
                 in >>
                     std::get<geometry::dielectric>(res.objects.back().material)
                         .ior;
+            } else if (buf == "EMISSION") {
+                std::visit([&in](auto &mat) { in >> mat.emission; }, res.objects.back().material);
             }
             // endregion
             // region lights

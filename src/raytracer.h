@@ -9,9 +9,12 @@
 #include <cassert>
 #include <cmath>
 #include <limits>
+#include <numbers>
 #include <optional>
 #include <ostream>
+#include <random>
 #include <thread>
+#include <type_traits>
 #include <variant>
 #include <vector>
 
@@ -19,6 +22,49 @@ constexpr bool USE_MULTITHREADING = true;
 constexpr size_t SPAN_SIZE = 256;
 
 constexpr float EPS = 1e-4;
+
+constexpr struct recursive_ray_tracing_token_t {
+} recursive_ray_tracing_token;
+constexpr struct monte_carlo_token_t {
+} monte_carlo_token;
+
+constexpr auto ALGORITHM_TOKEN = monte_carlo_token;
+
+struct RaytracerThreadContext {
+    const Scene &scene;
+    std::minstd_rand rand_gen;
+
+    [[nodiscard]] inline geometry::vec2 uniform_offset2() {
+        auto dist = std::uniform_real_distribution<float>(0.0f, 1.0f);
+        return {
+            dist(rand_gen),
+            dist(rand_gen),
+        };
+    }
+
+    [[nodiscard]] inline bool coin(float success_rate) {
+        auto dist = std::uniform_real_distribution<float>(0.0f, 1.0f);
+        return dist(rand_gen) <= success_rate;
+    }
+
+    [[nodiscard]] inline geometry::vec3 uniform_dir() {
+        auto z_dist = std::uniform_real_distribution<float>(-1.0f, 1.0f);
+        auto angle_dist = std::uniform_real_distribution<float>(
+            0.0f, 2 * std::numbers::pi_v<float>);
+
+        float z = z_dist(rand_gen);
+        float co_z = std::sqrt(1 - z * z);
+        float phi = angle_dist(rand_gen);
+
+        return {co_z * std::cos(phi), co_z * std::sin(phi), z};
+    }
+
+    [[nodiscard]] inline geometry::vec3
+    uniform_dir_semisphere(const geometry::vec3 &normal) {
+        auto dir = uniform_dir();
+        return geometry::dot(dir, normal) > 0 ? dir : -dir;
+    }
+};
 
 struct ray_intersection_info {
     geometry::vec3 normal;
@@ -31,7 +77,8 @@ using intersection_res = std::optional<float>;
 using ray_cast_res = std::optional<ray_intersection_info>;
 
 [[nodiscard]] constexpr static inline geometry::color3
-trace_ray(const Scene &scene, const geometry::ray &ray, unsigned max_depth);
+trace_ray(RaytracerThreadContext &context, const geometry::ray &ray,
+          unsigned max_depth);
 
 template <class Num> [[nodiscard]] constexpr inline Num pow2(Num x) {
     return x * x;
@@ -154,6 +201,19 @@ gen_ray(const Camera &camera, int x, int y) {
     return {camera.position, dir};
 }
 
+[[nodiscard]] static inline geometry::ray
+gen_ray(RaytracerThreadContext &context, int x, int y) {
+    auto &camera = context.scene.camera;
+    auto offset = context.uniform_offset2();
+    auto dir = norm((2 * (x + offset.x()) / camera.width - 1) *
+                        tan(camera.fov_x / 2) * camera.right -
+                    (2 * (y + offset.y()) / camera.height - 1) *
+                        tan(camera.fov_y() / 2) * camera.up +
+                    1 * camera.forward);
+
+    return {camera.position, dir};
+}
+
 static inline void update_intersection(ray_cast_res &res,
                                        const geometry::ray &ray,
                                        const geometry::Object &obj,
@@ -171,12 +231,12 @@ static inline void update_intersection(ray_cast_res &res,
 }
 
 [[nodiscard]] static inline ray_cast_res
-cast_ray(const Scene &scene, const geometry::ray &ray,
+cast_ray(const RaytracerThreadContext &context, const geometry::ray &ray,
          float max_dst = std::numeric_limits<float>::infinity(),
          float min_dst = EPS) {
     ray_cast_res res;
 
-    for (const auto &shape : scene.objects) {
+    for (const auto &shape : context.scene.objects) {
         update_intersection(res, ray, shape, intersect(ray, shape, min_dst),
                             max_dst);
     }
@@ -185,14 +245,14 @@ cast_ray(const Scene &scene, const geometry::ray &ray,
 }
 
 [[nodiscard]] static inline geometry::color3
-light_at_from(const Scene &scene, const geometry::vec3 &pos,
+light_at_from(const RaytracerThreadContext &context, const geometry::vec3 &pos,
               const geometry::vec3 &normal,
               const geometry::color3 &light_intensity,
               const geometry::point_light &light) {
     auto dir = light.position - pos;
     auto dst = dir.len();
     dir /= dst;
-    auto cast_res = cast_ray(scene, {pos, dir}, dst);
+    auto cast_res = cast_ray(context, {pos, dir}, dst);
     if (!cast_res.has_value()) {
         return std::max(dot(normal, dir), 0.0f) * light_intensity /
                geometry::dot(light.attenuation, {1, dst, dst * dst});
@@ -202,11 +262,11 @@ light_at_from(const Scene &scene, const geometry::vec3 &pos,
 }
 
 [[nodiscard]] static inline geometry::color3
-light_at_from(const Scene &scene, const geometry::vec3 &pos,
+light_at_from(RaytracerThreadContext &context, const geometry::vec3 &pos,
               const geometry::vec3 &normal,
               const geometry::color3 &light_intensity,
               const geometry::directed_light &light) {
-    auto cast_res = cast_ray(scene, {pos, light.direction});
+    auto cast_res = cast_ray(context, {pos, light.direction});
     if (!cast_res.has_value()) {
         return std::max(dot(normal, light.direction), 0.0f) * light_intensity;
     } else {
@@ -215,12 +275,12 @@ light_at_from(const Scene &scene, const geometry::vec3 &pos,
 }
 
 [[nodiscard]] static inline geometry::color3
-light_at_from(const Scene &scene, const geometry::vec3 &pos,
+light_at_from(RaytracerThreadContext &context, const geometry::vec3 &pos,
               const geometry::vec3 &normal,
               const geometry::LightSource &light_source) {
     return std::visit(
-        [&scene, &pos, &normal, &light_source](const auto &light) {
-            return light_at_from(scene, pos, normal, light_source.intensity,
+        [&context, &pos, &normal, &light_source](const auto &light) {
+            return light_at_from(context, pos, normal, light_source.intensity,
                                  light);
         },
         light_source.light);
@@ -228,45 +288,44 @@ light_at_from(const Scene &scene, const geometry::vec3 &pos,
 
 [[nodiscard]]
 static inline geometry::color3
-shade(const Scene &scene, const geometry::ray &ray,
+shade(RaytracerThreadContext &context, const geometry::ray &ray,
       const ray_intersection_info &intersection_info, unsigned max_depth,
-      geometry::diffuse) {
+      geometry::diffuse, recursive_ray_tracing_token_t) {
     auto pos = ray.at(intersection_info.t);
-    geometry::color3 res = scene.ambient_light;
+    geometry::color3 res = context.scene.ambient_light;
 
-    for (const auto &light : scene.lights) {
-        res += light_at_from(scene, pos, intersection_info.normal, light);
+    for (const auto &light : context.scene.lights) {
+        res += light_at_from(context, pos, intersection_info.normal, light);
     }
 
     return res * intersection_info.obj->color;
 }
 
 [[nodiscard]] constexpr static inline geometry::color3
-shade(const Scene &scene, const geometry::ray &ray,
+shade(RaytracerThreadContext &context, const geometry::ray &ray,
       const ray_intersection_info &intersection_info, unsigned max_depth,
-      geometry::metallic) {
+      geometry::metallic, recursive_ray_tracing_token_t) {
     auto pos = ray.at(intersection_info.t);
     auto res = trace_ray(
-        scene, {pos, geometry::reflect(intersection_info.normal, ray.dir)},
+        context, {pos, geometry::reflect(intersection_info.normal, ray.dir)},
         max_depth);
 
     return res * intersection_info.obj->color;
 }
 
 [[nodiscard]] constexpr static inline geometry::color3
-shade(const Scene &scene, const geometry::ray &ray,
+shade(RaytracerThreadContext &context, const geometry::ray &ray,
       const ray_intersection_info &intersection_info, unsigned max_depth,
-      geometry::dielectric material) {
+      geometry::dielectric material, recursive_ray_tracing_token_t) {
     auto pos = ray.at(intersection_info.t);
 
     float r0 = pow2((1 - material.ior) / (1 + material.ior));
     float r =
         r0 + (1 - r0) * pow<5>(1 - dot(intersection_info.normal, -ray.dir));
 
-    geometry::color3 res =
-        trace_ray(scene,
-                  {pos, geometry::reflect(intersection_info.normal, ray.dir)},
-                  max_depth);
+    geometry::color3 res = trace_ray(
+        context, {pos, geometry::reflect(intersection_info.normal, ray.dir)},
+        max_depth);
 
     float eta = intersection_info.is_inside ? material.ior : 1 / material.ior;
     auto sin_theta2_2 =
@@ -278,41 +337,113 @@ shade(const Scene &scene, const geometry::ray &ray,
             (eta * dot(intersection_info.normal, -ray.dir) - cos_theta2) *
                 intersection_info.normal);
 
-        res = r * res + (1 - r) * trace_ray(scene, {pos, dir1}, max_depth) *
-               (intersection_info.is_inside ? geometry::color3{1, 1, 1}
-                                            : intersection_info.obj->color);
+        res = r * res + (1 - r) * trace_ray(context, {pos, dir1}, max_depth) *
+                            (intersection_info.is_inside
+                                 ? geometry::color3{1, 1, 1}
+                                 : intersection_info.obj->color);
     }
 
     return res;
 }
 
+[[nodiscard]]
+static inline geometry::color3
+shade(RaytracerThreadContext &context, const geometry::ray &ray,
+      const ray_intersection_info &intersection_info, unsigned max_depth,
+      const geometry::diffuse &material, monte_carlo_token_t) {
+    auto pos = ray.at(intersection_info.t);
+    auto dir = context.uniform_dir_semisphere(intersection_info.normal);
+
+    return material.emission + 2 * intersection_info.obj->color *
+                                   trace_ray(context, {pos, dir}, max_depth) *
+                                   geometry::dot(dir, intersection_info.normal);
+}
+
 [[nodiscard]] constexpr static inline geometry::color3
-shade(const Scene &scene, const geometry::ray &ray,
+shade(RaytracerThreadContext &context, const geometry::ray &ray,
+      const ray_intersection_info &intersection_info, unsigned max_depth,
+      const geometry::metallic &material, monte_carlo_token_t) {
+    auto pos = ray.at(intersection_info.t);
+    auto res = trace_ray(
+        context, {pos, geometry::reflect(intersection_info.normal, ray.dir)},
+        max_depth);
+
+    return material.emission + res * intersection_info.obj->color;
+}
+
+[[nodiscard]] constexpr static inline geometry::color3
+shade(RaytracerThreadContext &context, const geometry::ray &ray,
+      const ray_intersection_info &intersection_info, unsigned max_depth,
+      const geometry::dielectric &material, monte_carlo_token_t) {
+    auto pos = ray.at(intersection_info.t);
+
+    float r0 = pow2((1 - material.ior) / (1 + material.ior));
+    float r =
+        r0 + (1 - r0) * pow<5>(1 - dot(intersection_info.normal, -ray.dir));
+
+    float eta = intersection_info.is_inside ? material.ior : 1 / material.ior;
+    auto sin_theta2_2 =
+        eta * eta * (1 - pow2(dot(intersection_info.normal, -ray.dir)));
+
+    if (sin_theta2_2 > 1 || context.coin(r)) {
+        return material.emission +
+               trace_ray(
+                   context,
+                   {pos, geometry::reflect(intersection_info.normal, ray.dir)},
+                   max_depth);
+    } else {
+        auto cos_theta2 = std::sqrt(1 - sin_theta2_2);
+        auto dir1 = geometry::norm(
+            eta * ray.dir +
+            (eta * dot(intersection_info.normal, -ray.dir) - cos_theta2) *
+                intersection_info.normal);
+
+        return material.emission + trace_ray(context, {pos, dir1}, max_depth) *
+                                       (intersection_info.is_inside
+                                            ? geometry::color3{1, 1, 1}
+                                            : intersection_info.obj->color);
+    }
+}
+
+[[nodiscard]] constexpr static inline geometry::color3
+shade(RaytracerThreadContext &context, const geometry::ray &ray,
       const ray_intersection_info &intersection_info, unsigned max_depth) {
     return std::visit(
-        [&scene, &ray, &intersection_info, &max_depth](auto mat) {
-            return shade(scene, ray, intersection_info, max_depth, mat);
+        [&context, &ray, &intersection_info, &max_depth](auto mat) {
+            return shade(context, ray, intersection_info, max_depth, mat,
+                         ALGORITHM_TOKEN);
         },
         intersection_info.obj->material);
 }
 
 [[nodiscard]] constexpr static inline geometry::color3
-trace_ray(const Scene &scene, const geometry::ray &ray, unsigned max_depth) {
+trace_ray(RaytracerThreadContext &context, const geometry::ray &ray,
+          unsigned max_depth) {
     if (max_depth == 0) {
         return {0, 0, 0};
     }
 
-    ray_cast_res trace_res = cast_ray(scene, ray);
+    ray_cast_res trace_res = cast_ray(context, ray);
 
     return trace_res.has_value()
-               ? shade(scene, ray, trace_res.value(), max_depth - 1)
-               : scene.bg_color;
+               ? shade(context, ray, trace_res.value(), max_depth - 1)
+               : context.scene.bg_color;
 }
 
-[[nodiscard]] static inline geometry::color3 render_pixel(const Scene &scene,
-                                                          int x, int y) {
-    auto ray = gen_ray(scene.camera, x, y);
-    return trace_ray(scene, ray, scene.ray_depth);
+[[nodiscard]] static inline geometry::color3
+render_pixel(RaytracerThreadContext &context, int x, int y) {
+    if constexpr (std::is_same_v<std::remove_const_t<decltype(ALGORITHM_TOKEN)>,
+                                 monte_carlo_token_t>) {
+        geometry::color3 res = {0, 0, 0};
+        for (int s = 0; s < context.scene.samples; ++s) {
+            auto ray = gen_ray(context, x, y);
+            res += trace_ray(context, ray, context.scene.ray_depth);
+        }
+        return res / context.scene.samples;
+    } else {
+        auto ray = gen_ray(context.scene.camera, x, y);
+        return trace_ray(context, ray, context.scene.ray_depth);
+    }
 }
 
 inline void run_raytracer(const Scene &scene, Image &image) {
@@ -327,10 +458,12 @@ inline void run_raytracer(const Scene &scene, Image &image) {
         int span_count = (image.data.size() + SPAN_SIZE - 1) / SPAN_SIZE;
         auto span = (image.data.size() + worker_count - 1) / worker_count;
         for (int i = 0; i < worker_count; ++i) {
-            workers.push_back(std::thread([&scene, &image, &next_span,
+            workers.push_back(std::thread([i, &scene, &image, &next_span,
                                            &span_count]() {
                 int span = -1;
                 while ((span = next_span.fetch_add(1)) < span_count) {
+                    RaytracerThreadContext context{scene,
+                                                   std::minstd_rand(span)};
                     auto begin = SPAN_SIZE * span,
                          end = std::min(begin + SPAN_SIZE, image.data.size());
                     for (int p_idx = begin, x = p_idx % image.width,
@@ -340,7 +473,7 @@ inline void run_raytracer(const Scene &scene, Image &image) {
                             x = 0;
                             y += 1;
                         }
-                        image.set_pixel(p_idx, render_pixel(scene, x, y));
+                        image.set_pixel(p_idx, render_pixel(context, x, y));
                     }
                 }
             }));
@@ -349,9 +482,10 @@ inline void run_raytracer(const Scene &scene, Image &image) {
         for (auto &th : workers)
             th.join();
     } else {
+        RaytracerThreadContext context{scene, std::minstd_rand(42)};
         for (int y = 0; y < scene.camera.height; ++y) {
             for (int x = 0; x < scene.camera.width; ++x) {
-                image.set_pixel(x, y, render_pixel(scene, x, y));
+                image.set_pixel(x, y, render_pixel(context, x, y));
             }
         }
     }
