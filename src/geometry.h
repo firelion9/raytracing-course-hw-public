@@ -69,7 +69,7 @@ struct quaternion {
 
     [[nodiscard]] constexpr float w() const { return sp; }
 
-    [[nodiscard]] constexpr vec3 v() const { return vp; }
+    [[nodiscard]] constexpr const vec3 &v() const { return vp; }
 
     [[nodiscard]] constexpr float &w() { return sp; }
 
