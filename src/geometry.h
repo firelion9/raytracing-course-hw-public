@@ -161,13 +161,17 @@ enum ShapeType {
 struct plane {
     vec3 normal;
 
-    [[nodiscard]] constexpr inline vec3 normal_at(const vec3 &pos) const { return normal; }
+    [[nodiscard]] constexpr inline vec3 normal_at(const vec3 &pos) const {
+        return normal;
+    }
 };
 
 struct ellipsoid {
     vec3 radius;
 
-    [[nodiscard]] constexpr inline vec3 normal_at(const vec3 &pos) const { return norm(pos / radius / radius); }
+    [[nodiscard]] constexpr inline vec3 normal_at(const vec3 &pos) const {
+        return norm(pos / radius / radius);
+    }
 };
 
 struct box {
@@ -192,8 +196,8 @@ using shape = std::variant<plane, ellipsoid, box>;
 }
 
 template <class shape_type, class vec_type>
-[[nodiscard]] constexpr inline geometry::ray reflect(const shape_type &shape, const geometry::ray &ray,
-                      float t) {
+[[nodiscard]] constexpr inline geometry::ray
+reflect(const shape_type &shape, const geometry::ray &ray, float t) {
     auto base = ray.at(t);
     auto normal = shape.normal_at(base);
     auto out_dir = reflect(ray.dir, normal);
@@ -226,6 +230,10 @@ struct Object {
     [[nodiscard]] constexpr inline vec3 normal_at(const vec3 &pos) const {
         return rotation *
                geometry::normal_at(shape, rotation.conj() * (pos - position));
+    }
+
+    [[nodiscard]] constexpr inline color3 emission() const {
+        return std::visit([](auto &mat) { return mat.emission; }, material);
     }
 };
 

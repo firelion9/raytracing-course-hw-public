@@ -134,8 +134,21 @@ def gen_vector_componentwise_scalar_fn(vec_type, scalar_type, fields, op):
 
     return res
 
+def gen_vector_reduce_op(vec_type, fields, return_type, name, zip_op, reduce_op):
+    res = f"[[nodiscard]] constexpr inline {return_type} {name}(const {vec_type}& a, const {vec_type}& b) " + "{\n"
+    res += (
+        f"{indent}return "
+        + reduce_op.join(map(lambda f: f"(a.{f}(){zip_op}b.{f}())", fields))
+        + ";\n"
+    )
+    res += "}\n"
+
+    return res
+
 def gen_vector_ops(vec_type, fields, scalar_type):
     res = ""
+
+    res += gen_vector_reduce_op(vec_type, fields, "bool", "operator==", "==", " & ") + "\n"
 
     ops = ["+", "-", "*", "/"]
     for op in ops:
@@ -232,6 +245,14 @@ def gen_vec_member_ops(fields, type_builder):
     res = gen_access_ops(fields, type_builder)
     scalar_type = type_builder(1)
     vec_type = type_builder(len(fields))
+
+    res += f"[[nodiscard]] constexpr inline {scalar_type} len_l1() const " + "{\n"
+    res += (
+        f"{indent}return "
+        + "+".join(map(lambda f: f"std::abs(this->{f}())", fields))
+        + ";\n"
+    )
+    res += "}\n\n"
 
     res += f"[[nodiscard]] constexpr inline {scalar_type} len2() const " + "{\n"
     res += (

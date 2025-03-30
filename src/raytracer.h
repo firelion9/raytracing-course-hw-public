@@ -5,11 +5,14 @@
 #include "image.h"
 #include "scene.h"
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <cassert>
 #include <cmath>
+#include <iterator>
 #include <limits>
 #include <numbers>
+#include <numeric>
 #include <optional>
 #include <ostream>
 #include <random>
@@ -35,10 +38,295 @@ constexpr auto ALGORITHM_TOKEN = monte_carlo_token;
 // endregion
 
 // region internal structures
+template <size_t capacity, class T> struct small_vector {
+    std::array<T, capacity> data;
+    size_t size = 0;
+
+    [[nodiscard]] constexpr inline small_vector() = default;
+    [[nodiscard]] constexpr inline small_vector(const small_vector &) = default;
+
+    constexpr inline void push(const T &e) { data[size++] = e; }
+
+    [[nodiscard]] constexpr inline T &operator[](size_t idx) {
+        return data[idx];
+    }
+    [[nodiscard]] constexpr inline const T &operator[](size_t idx) const {
+        return data[idx];
+    }
+
+    [[nodiscard]] constexpr inline auto begin() const { return data.begin(); }
+    [[nodiscard]] constexpr inline auto end() const {
+        return data.begin() + size;
+    }
+
+    [[nodiscard]] constexpr inline auto begin() { return data.begin(); }
+    [[nodiscard]] constexpr inline auto end() { return data.begin() + size; }
+
+    [[nodiscard]] constexpr inline auto empty() const { return size == 0; }
+
+    [[nodiscard]] constexpr inline auto min() const {
+        auto res = data[0];
+        for (int i = 1; i < size; ++i)
+            res = std::min(res, data[i]);
+        return res;
+    }
+};
+
+struct ray_intersection_info {
+    geometry::vec3 normal;
+    float t = 0;
+    const geometry::Object *obj;
+    bool is_inside;
+};
+
+using intersection_res = small_vector<2, float>;
+using ray_cast_res = std::optional<ray_intersection_info>;
+
+[[nodiscard]] constexpr static inline intersection_res
+intersect_ray_obj(const geometry::ray &ray, const geometry::box &box,
+                  float min_dst);
+[[nodiscard]] constexpr static inline intersection_res
+intersect_ray_obj(const geometry::ray &ray,
+                  const geometry::ellipsoid &ellipsoid, float min_dst);
+
+struct cosine_dist;
+struct light_dist;
+struct mix_dist;
+using dist_t = std::variant<cosine_dist, light_dist, mix_dist>;
+
+[[nodiscard]] constexpr static inline float light_surface_projection_multiplier(
+    const geometry::vec3 &center, const geometry::vec3 &y,
+    const geometry::vec3 &normal_y,
+    const geometry::vec3 &dir /* = norm(y - center) */) {
+    return (center - y).len2() / std::abs(geometry::dot(dir, normal_y));
+}
+
+struct sphere_uniform_dist {
+    template <class Rng>
+    [[nodiscard]] inline geometry::vec3
+    sample(Rng &rng, const geometry::vec3 &x,
+           const geometry::vec3 &normal) const {
+        auto z_dist = std::uniform_real_distribution<float>(-1.0f, 1.0f);
+        auto angle_dist = std::uniform_real_distribution<float>(
+            0.0f, 2 * std::numbers::pi_v<float>);
+
+        float z = z_dist(rng);
+        float co_z = std::sqrt(1 - z * z);
+        float phi = angle_dist(rng);
+
+        return {co_z * std::cos(phi), co_z * std::sin(phi), z};
+    }
+
+    [[nodiscard]] inline float pdf(const geometry::vec3 &x,
+                                   const geometry::vec3 &normal,
+                                   const geometry::vec3 &dir) const {
+        return 1.0f / 4 / std::numbers::inv_pi_v<float>;
+    }
+};
+
+struct cosine_dist {
+    template <class Rng>
+    [[nodiscard]] constexpr inline geometry::vec3
+    sample(Rng &rng, const geometry::vec3 &x,
+           const geometry::vec3 &normal) const {
+        auto dir = normal + sphere_uniform_dist().sample(rng, x, normal);
+        return geometry::norm(dir);
+    }
+
+    [[nodiscard]] inline float pdf(const geometry::vec3 &x,
+                                   const geometry::vec3 &normal,
+                                   const geometry::vec3 &dir) const {
+        return std::max(geometry::dot(normal, dir) / std::numbers::pi_v<float>,
+                        0.0f);
+    }
+};
+
+struct box_dist {
+    geometry::box box;
+    geometry::vec2 weights;
+    float area_inv;
+
+    [[nodiscard]] constexpr inline box_dist(const geometry::box &box)
+        : box(box) {
+        geometry::vec3 weights{box.half_size.y() * box.half_size.z(),
+                               box.half_size.z() * box.half_size.x(),
+                               box.half_size.x() * box.half_size.y()};
+        weights.y() += weights.x();
+        weights.z() += weights.y();
+        this->weights = weights.xy() / weights.z();
+        area_inv = 1 / (8 * weights.z());
+    }
+
+    template <class Rng>
+    [[nodiscard]] inline geometry::vec3
+    sample(Rng &rng, const geometry::vec3 &x,
+           const geometry::vec3 &normal) const {
+        float face_cont = std::uniform_real_distribution<float>()(rng);
+        int face_idx = face_cont >= weights.y()   ? 2
+                       : face_cont >= weights.x() ? 1
+                                                  : 0;
+        const std::array<geometry::vec3, 3> &face_transform =
+            face_index_to_transform[face_idx];
+
+        auto off_dist = std::uniform_real_distribution<float>(-1, 1);
+        auto p = box.half_size *
+                 (face_transform[0] * (off_dist(rng) >= 0.0 ? 1 : -1) +
+                  face_transform[1] * off_dist(rng) +
+                  face_transform[2] * off_dist(rng));
+        return geometry::norm(p - x);
+    }
+
+    [[nodiscard]] inline float pdf(const geometry::vec3 &x,
+                                   const geometry::vec3 &normal,
+                                   const geometry::vec3 &dir) const {
+        geometry::ray ray{x, dir};
+        auto intersections = intersect_ray_obj(ray, box, EPS);
+
+        float res = 0;
+        for (auto t : intersections) {
+            auto y = ray.at(t);
+            res += light_surface_projection_multiplier(x, y, box.normal_at(y),
+                                                       dir);
+        }
+        return res * area_inv;
+    }
+
+    static constexpr std::array<std::array<geometry::vec3, 3>, 3>
+        face_index_to_transform{
+            std::array<geometry::vec3, 3>{
+                geometry::vec3{1, 0, 0}, {0, 1, 0}, {0, 0, 1}},
+            std::array<geometry::vec3, 3>{
+                geometry::vec3{0, 1, 0}, {0, 0, 1}, {1, 0, 0}},
+            std::array<geometry::vec3, 3>{
+                geometry::vec3{0, 0, 1}, {1, 0, 0}, {0, 1, 0}},
+        };
+};
+struct ellipsoid_dist {
+    geometry::ellipsoid ellipsoid;
+
+    template <class Rng>
+    [[nodiscard]] inline geometry::vec3
+    sample(Rng &rng, const geometry::vec3 &x,
+           const geometry::vec3 &normal) const {
+        auto p =
+            ellipsoid.radius * sphere_uniform_dist().sample(rng, x, normal);
+        return geometry::norm(p - x);
+    }
+
+    [[nodiscard]] inline float pdf(const geometry::vec3 &x,
+                                   const geometry::vec3 &normal,
+                                   const geometry::vec3 &dir) const {
+        geometry::ray ray{x, dir};
+        auto intersections = intersect_ray_obj(ray, ellipsoid, EPS);
+        float res = 0;
+        for (auto t : intersections) {
+            auto y = ray.at(t);
+            auto n = y / ellipsoid.radius;
+            res += light_surface_projection_multiplier(
+                       x, y, ellipsoid.normal_at(y), dir) /
+                   (n * ellipsoid.radius.yzx() * ellipsoid.radius.zxy()).len();
+        }
+        return res / (4 * std::numbers::pi_v<float>);
+    }
+};
+
+struct light_dist {
+    geometry::vec3 pos;
+    geometry::quaternion rotation;
+    std::variant<box_dist, ellipsoid_dist> dist;
+
+    template <class Rng>
+    [[nodiscard]] inline geometry::vec3
+    sample(Rng &rng, const geometry::vec3 &x,
+           const geometry::vec3 &normal) const {
+        return std::visit(
+            [&pos = this->pos, &rotation = this->rotation, &rng, &x,
+             &normal](const auto &dist) {
+                return dist.sample(rng, (x - pos) * rotation.conj(),
+                                   normal * rotation.conj()) *
+                       rotation;
+            },
+            dist);
+    }
+
+    [[nodiscard]] inline float pdf(const geometry::vec3 &x,
+                                   const geometry::vec3 &normal,
+                                   const geometry::vec3 &dir) const {
+        return std::visit(
+            [&pos = this->pos, &rotation = this->rotation, &x, &normal,
+             &dir](const auto &dist) {
+                return dist.pdf((x - pos) * rotation.conj(),
+                                normal * rotation.conj(),
+                                dir * rotation.conj());
+            },
+            dist);
+    }
+};
+
+struct mix_dist {
+    std::vector<dist_t> dists;
+
+    template <class Rng>
+    [[nodiscard]] inline geometry::vec3
+    sample(Rng &rng, const geometry::vec3 &x,
+           const geometry::vec3 &normal) const {
+        auto dist =
+            dists[std::uniform_int_distribution<>(0, dists.size() - 1)(rng)];
+
+        return std::visit(
+            [&rng, &x, &normal](const auto &dist) {
+                return dist.sample(rng, x, normal);
+            },
+            dist);
+    }
+
+    [[nodiscard]] inline float pdf(const geometry::vec3 &x,
+                                   const geometry::vec3 &normal,
+                                   const geometry::vec3 &dir) const {
+        float res = 0;
+        for (auto &dist : dists) {
+            res += std::visit(
+                [&x, &normal, &dir](const auto &dist) {
+                    return dist.pdf(x, normal, dir);
+                },
+                dist);
+        }
+        return res / dists.size();
+    }
+};
+
+template <class Rng> struct dir_generator {
+    Rng &rng;
+    dist_t dist;
+
+    [[nodiscard]] inline geometry::vec3 sample(const geometry::vec3 &x,
+                                               const geometry::vec3 &normal) {
+        return std::visit(
+            [&rng = this->rng, &x, &normal](const auto &dist) {
+                return dist.sample(rng, x, normal);
+            },
+            dist);
+    }
+
+    [[nodiscard]] inline float pdf(const geometry::vec3 &x,
+                                   const geometry::vec3 &normal,
+                                   const geometry::vec3 &dir) const {
+        return std::visit(
+            [&x, &normal, &dir](const auto &dist) {
+                return dist.pdf(x, normal, dir);
+            },
+            dist);
+    }
+};
 
 struct RaytracerThreadContext {
     const Scene &scene;
     std::minstd_rand rand_gen;
+    dir_generator<std::minstd_rand> dir_gen;
+
+    RaytracerThreadContext(const Scene &scene, const dist_t &dir_gen,
+                           int rand_seed)
+        : scene(scene), rand_gen(rand_seed), dir_gen({rand_gen, dir_gen}) {}
 
     [[nodiscard]] inline geometry::vec2 uniform_offset2() {
         auto dist = std::uniform_real_distribution<float>(0.0f, 1.0f);
@@ -71,16 +359,6 @@ struct RaytracerThreadContext {
         return geometry::dot(dir, normal) > 0 ? dir : -dir;
     }
 };
-
-struct ray_intersection_info {
-    geometry::vec3 normal;
-    float t = 0;
-    const geometry::Object *obj;
-    bool is_inside;
-};
-
-using intersection_res = std::optional<float>;
-using ray_cast_res = std::optional<ray_intersection_info>;
 
 // endregion
 
@@ -132,8 +410,8 @@ template <class vec_type>
 
 #define push_t(t, min_dst)                                                     \
     do {                                                                       \
-        if (t >= min_dst && (!res.has_value() || t < *res))                    \
-            res = t;                                                           \
+        if (t >= min_dst)                                                      \
+            res.push(t);                                                       \
     } while (false)
 
 [[nodiscard]] constexpr static inline intersection_res
@@ -210,14 +488,17 @@ static inline void update_intersection(ray_cast_res &res,
                                        const geometry::Object &obj,
                                        const intersection_res &intersection,
                                        float max_dst) {
-    if (!intersection.has_value() || *intersection > max_dst)
+    if (intersection.empty())
+        return;
+    auto t = intersection.min();
+    if (t > max_dst)
         return;
 
-    if (!res.has_value() || res->t > *intersection) {
-        auto pos = ray.at(*intersection);
+    if (!res.has_value() || res->t > t) {
+        auto pos = ray.at(t);
         auto normal = obj.normal_at(pos);
         auto is_inside = geometry::dot(normal, ray.dir) > 0;
-        res = {is_inside ? -normal : normal, *intersection, &obj, is_inside};
+        res = {is_inside ? -normal : normal, t, &obj, is_inside};
     }
 }
 
@@ -375,11 +656,16 @@ shade(RaytracerThreadContext &context, const geometry::ray &ray,
       const ray_intersection_info &intersection_info, unsigned max_depth,
       const geometry::diffuse &material, monte_carlo_token_t) {
     auto pos = ray.at(intersection_info.t);
-    auto dir = context.uniform_dir_semisphere(intersection_info.normal);
+    auto dir = context.dir_gen.sample(pos, intersection_info.normal);
+    auto p = context.dir_gen.pdf(pos, intersection_info.normal, dir);
+    if (p == 0.0) {
+        return material.emission;
+    }
 
-    return material.emission + 2 * intersection_info.obj->color *
-                                   trace_ray(context, {pos, dir}, max_depth) *
-                                   geometry::dot(dir, intersection_info.normal);
+    return material.emission +
+           intersection_info.obj->color / std::numbers::pi_v<float> *
+               trace_ray(context, {pos, dir}, max_depth) *
+               geometry::dot(dir, intersection_info.normal) / p;
 }
 
 [[nodiscard]] constexpr static inline geometry::color3
@@ -475,6 +761,31 @@ inline void run_raytracer(const Scene &scene, Image &image) {
     if (scene.ray_depth == 0)
         return;
 
+    dist_t diffuse_dist = cosine_dist();
+    std::vector<dist_t> light_sources;
+    for (auto &obj : scene.objects) {
+        if (obj.emission() == geometry::color3{0, 0, 0})
+            continue;
+
+        std::visit(
+            [&pos = obj.position, &rotation = obj.rotation,
+             &light_sources](auto shape) {
+                if constexpr (std::is_same_v<decltype(shape),
+                                             geometry::ellipsoid>) {
+                    light_sources.push_back(
+                        light_dist{pos, rotation, ellipsoid_dist{shape}});
+                } else if constexpr (std::is_same_v<decltype(shape),
+                                                    geometry::box>) {
+                    light_sources.push_back(
+                        light_dist{pos, rotation, box_dist(shape)});
+                }
+            },
+            obj.shape);
+    }
+    if (!light_sources.empty()) {
+        diffuse_dist = mix_dist{{diffuse_dist, mix_dist{light_sources}}};
+    }
+
     if constexpr (USE_MULTITHREADING) {
         auto worker_count = std::thread::hardware_concurrency();
         std::vector<std::thread> workers;
@@ -484,11 +795,10 @@ inline void run_raytracer(const Scene &scene, Image &image) {
         auto span = (image.data.size() + worker_count - 1) / worker_count;
         for (int i = 0; i < worker_count; ++i) {
             workers.push_back(std::thread([i, &scene, &image, &next_span,
-                                           &span_count]() {
+                                           &span_count, &diffuse_dist]() {
                 int span = -1;
                 while ((span = next_span.fetch_add(1)) < span_count) {
-                    RaytracerThreadContext context{scene,
-                                                   std::minstd_rand(span)};
+                    RaytracerThreadContext context(scene, diffuse_dist, span);
                     auto begin = SPAN_SIZE * span,
                          end = std::min(begin + SPAN_SIZE, image.data.size());
                     for (int p_idx = begin, x = p_idx % image.width,
@@ -507,7 +817,7 @@ inline void run_raytracer(const Scene &scene, Image &image) {
         for (auto &th : workers)
             th.join();
     } else {
-        RaytracerThreadContext context{scene, std::minstd_rand(42)};
+        RaytracerThreadContext context(scene, diffuse_dist, 42);
         for (int y = 0; y < scene.camera.height; ++y) {
             for (int x = 0; x < scene.camera.width; ++x) {
                 image.set_pixel(x, y, render_pixel(context, x, y));

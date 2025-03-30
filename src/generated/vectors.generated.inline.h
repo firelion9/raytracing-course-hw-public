@@ -39,6 +39,10 @@ struct vec2 {
         return {this->y(), this->y()};
     }
 
+    [[nodiscard]] constexpr inline float len_l1() const {
+        return std::abs(this->x())+std::abs(this->y());
+    }
+
     [[nodiscard]] constexpr inline float len2() const {
         return this->x() * this->x()+this->y() * this->y();
     }
@@ -52,6 +56,10 @@ struct vec2 {
     }
 
 };
+
+[[nodiscard]] constexpr inline bool operator==(const vec2& a, const vec2& b) {
+    return (a.x()==b.x()) & (a.y()==b.y());
+}
 
 [[nodiscard]] constexpr inline vec2 operator+(const vec2& a, const vec2& b) {
     return {a.x() + b.x(), a.y() + b.y()};
@@ -356,6 +364,10 @@ struct vec3 {
         return {this->z(), this->z(), this->z()};
     }
 
+    [[nodiscard]] constexpr inline float len_l1() const {
+        return std::abs(this->x())+std::abs(this->y())+std::abs(this->z());
+    }
+
     [[nodiscard]] constexpr inline float len2() const {
         return this->x() * this->x()+this->y() * this->y()+this->z() * this->z();
     }
@@ -369,6 +381,10 @@ struct vec3 {
     }
 
 };
+
+[[nodiscard]] constexpr inline bool operator==(const vec3& a, const vec3& b) {
+    return (a.x()==b.x()) & (a.y()==b.y()) & (a.z()==b.z());
+}
 
 [[nodiscard]] constexpr inline vec3 operator+(const vec3& a, const vec3& b) {
     return {a.x() + b.x(), a.y() + b.y(), a.z() + b.z()};
@@ -1897,6 +1913,10 @@ struct vec4 {
         return {this->w(), this->w(), this->w(), this->w()};
     }
 
+    [[nodiscard]] constexpr inline float len_l1() const {
+        return std::abs(this->x())+std::abs(this->y())+std::abs(this->z())+std::abs(this->w());
+    }
+
     [[nodiscard]] constexpr inline float len2() const {
         return this->x() * this->x()+this->y() * this->y()+this->z() * this->z()+this->w() * this->w();
     }
@@ -1910,6 +1930,10 @@ struct vec4 {
     }
 
 };
+
+[[nodiscard]] constexpr inline bool operator==(const vec4& a, const vec4& b) {
+    return (a.x()==b.x()) & (a.y()==b.y()) & (a.z()==b.z()) & (a.w()==b.w());
+}
 
 [[nodiscard]] constexpr inline vec4 operator+(const vec4& a, const vec4& b) {
     return {a.x() + b.x(), a.y() + b.y(), a.z() + b.z(), a.w() + b.w()};
@@ -2190,6 +2214,10 @@ struct color3 {
         return {this->b(), this->b(), this->b()};
     }
 
+    [[nodiscard]] constexpr inline float len_l1() const {
+        return std::abs(this->r())+std::abs(this->g())+std::abs(this->b());
+    }
+
     [[nodiscard]] constexpr inline float len2() const {
         return this->r() * this->r()+this->g() * this->g()+this->b() * this->b();
     }
@@ -2203,6 +2231,10 @@ struct color3 {
     }
 
 };
+
+[[nodiscard]] constexpr inline bool operator==(const color3& a, const color3& b) {
+    return (a.r()==b.r()) & (a.g()==b.g()) & (a.b()==b.b());
+}
 
 [[nodiscard]] constexpr inline color3 operator+(const color3& a, const color3& b) {
     return {a.r() + b.r(), a.g() + b.g(), a.b() + b.b()};
@@ -3659,6 +3691,10 @@ struct color4 {
         return {this->a(), this->a(), this->a(), this->a()};
     }
 
+    [[nodiscard]] constexpr inline float len_l1() const {
+        return std::abs(this->r())+std::abs(this->g())+std::abs(this->b())+std::abs(this->a());
+    }
+
     [[nodiscard]] constexpr inline float len2() const {
         return this->r() * this->r()+this->g() * this->g()+this->b() * this->b()+this->a() * this->a();
     }
@@ -3672,6 +3708,10 @@ struct color4 {
     }
 
 };
+
+[[nodiscard]] constexpr inline bool operator==(const color4& a, const color4& b) {
+    return (a.r()==b.r()) & (a.g()==b.g()) & (a.b()==b.b()) & (a.a()==b.a());
+}
 
 [[nodiscard]] constexpr inline color4 operator+(const color4& a, const color4& b) {
     return {a.r() + b.r(), a.g() + b.g(), a.b() + b.b(), a.a() + b.a()};
