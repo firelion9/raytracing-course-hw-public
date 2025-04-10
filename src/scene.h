@@ -108,6 +108,9 @@ struct Scene {
             } else if (buf == "BOX") {
                 res.objects.back().shape =
                     geometry::box{typed_read<geometry::vec3>(in)};
+            } else if (buf == "TRIANGLE") {
+                res.objects.back().shape =
+                    geometry::triangle{typed_read<geometry::vec3>(in), typed_read<geometry::vec3>(in), typed_read<geometry::vec3>(in)};
             } else if (buf == "POSITION") {
                 in >> res.objects.back().position;
             } else if (buf == "ROTATION") {

@@ -88,6 +88,9 @@ intersect_ray_obj(const geometry::ray &ray, const geometry::box &box,
 [[nodiscard]] constexpr static inline intersection_res
 intersect_ray_obj(const geometry::ray &ray,
                   const geometry::ellipsoid &ellipsoid, float min_dst);
+[[nodiscard]] constexpr static inline intersection_res
+intersect_ray_obj(const geometry::ray &ray,
+                  const geometry::triangle &triangle, float min_dst);
 
 struct cosine_dist;
 struct light_dist;
@@ -201,6 +204,7 @@ struct box_dist {
                 geometry::vec3{0, 0, 1}, {1, 0, 0}, {0, 1, 0}},
         };
 };
+
 struct ellipsoid_dist {
     geometry::ellipsoid ellipsoid;
 
@@ -230,10 +234,43 @@ struct ellipsoid_dist {
     }
 };
 
+struct triangle_dist {
+    geometry::triangle triangle;
+
+    template <class Rng>
+    [[nodiscard]] inline geometry::vec3
+    sample(Rng &rng, const geometry::vec3 &x,
+           const geometry::vec3 &normal) const {
+        auto dist = std::uniform_real_distribution<float>(0, 1);
+        float u = dist(rng);
+        float v = dist(rng);
+        if (u + v > 1) {
+            u = 1 - u;
+            v = 1 - v;
+        }
+
+        auto p = triangle.a() + triangle.v() * v + triangle.u() * u;
+        return geometry::norm(p - x);
+    }
+
+    [[nodiscard]] inline float pdf(const geometry::vec3 &x,
+                                   const geometry::vec3 &normal,
+                                   const geometry::vec3 &dir) const {
+        geometry::ray ray{x, dir};
+        auto intersections = intersect_ray_obj(ray, triangle, EPS);
+        float res = 0;
+        for (auto t : intersections) {
+            auto y = ray.at(t);
+            res += light_surface_projection_multiplier(x, y, triangle.normal_at(y), dir);
+        }
+        return res / triangle.square();
+    }
+};
+
 struct light_dist {
     geometry::vec3 pos;
     geometry::quaternion rotation;
-    std::variant<box_dist, ellipsoid_dist> dist;
+    std::variant<box_dist, ellipsoid_dist, triangle_dist> dist;
 
     template <class Rng>
     [[nodiscard]] inline geometry::vec3
@@ -462,6 +499,27 @@ intersect_ray_obj(const geometry::ray &ray, const geometry::box &box,
         push_t(t_max, min_dst);
     }
 
+    return res;
+}
+
+[[nodiscard]] constexpr static inline intersection_res
+intersect_ray_obj(const geometry::ray &ray, const geometry::triangle &triangle,
+                  float min_dst) {
+    intersection_res res;
+
+    auto av = triangle.v();
+    auto au = triangle.u();
+    auto at = -ray.dir;
+    auto y = ray.start - triangle.a();
+
+    auto xs = geometry::vec3(geometry::det(y, au, at), geometry::det(av, y, at),
+                             geometry::det(av, au, y)) /
+              geometry::det(av, au, at);
+
+    if (xs.x() >= 0 && xs.y() >= 0 && xs.x() + xs.y() <= 1 && xs.z() >= 0) {
+        push_t(xs.z(), min_dst);
+    }
+    
     return res;
 }
 
@@ -778,6 +836,10 @@ inline void run_raytracer(const Scene &scene, Image &image) {
                                                     geometry::box>) {
                     light_sources.push_back(
                         light_dist{pos, rotation, box_dist(shape)});
+                } else if constexpr (std::is_same_v<decltype(shape),
+                                                    geometry::triangle>) {
+                    light_sources.push_back(
+                        light_dist{pos, rotation, triangle_dist(shape)});
                 }
             },
             obj.shape);

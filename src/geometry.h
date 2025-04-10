@@ -18,6 +18,11 @@ namespace geometry {
     };
 }
 
+[[nodiscard]] constexpr inline float det(const vec3 &c1, const vec3 &c2,
+                                         const vec3 &c3) {
+    return dot(c1, crs(c2, c3));
+}
+
 template <class vec_type>
 [[nodiscard]] constexpr inline vec_type norm(const vec_type &vec) {
     return vec / vec.len();
@@ -122,12 +127,13 @@ struct quaternion {
 
 [[nodiscard]] constexpr inline vec3 operator*(const vec3 &v,
                                               const quaternion &q) {
-    return (q * quaternion(v) * q.conj()).v();
+    auto t = 2 * crs(q.v(), v);
+    return v + q.w() * t + crs(q.v(), t);
 }
 
 [[nodiscard]] constexpr inline vec3 operator*(const quaternion &q,
                                               const vec3 &v) {
-    return (q * quaternion(v) * q.conj()).v();
+    return v * q;
 }
 
 inline std::istream &operator>>(std::istream &stream, quaternion &q) {
@@ -187,7 +193,35 @@ struct box {
     }
 };
 
-using shape = std::variant<plane, ellipsoid, box>;
+struct triangle {
+    std::array<vec3, 3> vertices;
+
+    [[nodiscard]] constexpr inline vec3 &a() { return vertices[0]; }
+
+    [[nodiscard]] constexpr inline vec3 &b() { return vertices[1]; }
+
+    [[nodiscard]] constexpr inline vec3 &c() { return vertices[2]; }
+
+    [[nodiscard]] constexpr inline const vec3 &a() const { return vertices[0]; }
+
+    [[nodiscard]] constexpr inline const vec3 &b() const { return vertices[1]; }
+
+    [[nodiscard]] constexpr inline const vec3 &c() const { return vertices[2]; }
+
+    [[nodiscard]] constexpr inline vec3 v() const { return b() - a(); }
+
+    [[nodiscard]] constexpr inline vec3 u() const { return c() - a(); }
+
+    [[nodiscard]] constexpr inline vec3 normal_at(const vec3 &pos) const {
+        return norm(crs(v(), u()));
+    }
+
+    [[nodiscard]] constexpr inline float square() const {
+        return dot(v(), u()) / 2;
+    }
+};
+
+using shape = std::variant<plane, ellipsoid, box, triangle>;
 
 [[nodiscard]] constexpr inline vec3 normal_at(const geometry::shape &shape,
                                               const vec3 &pos) {
