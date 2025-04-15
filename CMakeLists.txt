@@ -6,5 +6,5 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(EXE raytracer)
 
-add_executable(${EXE} src/main.cpp src/scene.h src/geometry.h src/image.h src/raytracer.h src/generated/vectors.generated.inline.h)
+add_executable(${EXE} src/main.cpp src/scene.h src/geometry.h src/image.h src/raytracer.h src/bvh.h src/generated/vectors.generated.inline.h)
 target_include_directories(${EXE} PRIVATE include)

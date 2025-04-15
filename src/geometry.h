@@ -34,6 +34,16 @@ template <class vec_type>
     return in_dir - 2 * normal * dot(in_dir, normal);
 }
 
+template <class vec_type>
+[[nodiscard]] constexpr static inline float max_component(const vec_type &vec) {
+    return *std::max_element(vec.val.begin(), vec.val.end());
+}
+
+template <class vec_type>
+[[nodiscard]] constexpr static inline float min_component(const vec_type &vec) {
+    return *std::min_element(vec.val.begin(), vec.val.end());
+}
+
 struct quaternion;
 [[nodiscard]] constexpr inline quaternion operator/(const quaternion &a,
                                                     float scl);
@@ -158,17 +168,96 @@ struct ray {
     }
 };
 
-enum ShapeType {
-    PLANE = 0,
-    ELLIPSOID = 1,
-    BOX = 2,
+struct aabb {
+    std::array<vec3, 2> vs{vec3{INFINITY, INFINITY, INFINITY},
+                           vec3{-INFINITY, -INFINITY, -INFINITY}};
+
+    [[nodiscard]] constexpr inline const vec3 &vmin() const { return vs[0]; }
+
+    [[nodiscard]] constexpr inline const vec3 &vmax() const { return vs[1]; }
+
+    [[nodiscard]] constexpr inline aabb extended_by(const vec3 &p) const {
+        aabb res = *this;
+        res.extend(p);
+        return res;
+    }
+
+    constexpr inline void extend(const vec3 &p) {
+        vs[0] = min(vs[0], p);
+        vs[1] = max(vs[1], p);
+    }
+
+    constexpr inline void extend(const aabb &box) {
+        vs[0] = min(vmin(), box.vmin());
+        vs[1] = max(vmax(), box.vmax());
+    }
+
+    [[nodiscard]] constexpr inline vec3 vert(std::uint32_t idx) const {
+        return {
+            (idx & 1 ? vs[1] : vs[0]).val[0],
+            (idx & 2 ? vs[1] : vs[0]).val[1],
+            (idx & 4 ? vs[1] : vs[0]).val[2],
+        };
+    }
+
+    template <class Fn> constexpr inline void foreach_vert(Fn &&fn) const {
+        for (int i = 0; i < 8; ++i) {
+            fn(vert(i));
+        }
+    }
+
+    [[nodiscard]] constexpr inline vec3 diag() const { return vmax() - vmin(); }
+
+    [[nodiscard]] constexpr inline float surface_area() const {
+        return 2 * dot(diag(), diag().yxz());
+    }
+
+    [[nodiscard]] constexpr inline vec3 center() const { return vec3{0, 0, 0}; }
+
+    [[nodiscard]] constexpr inline aabb bounding_box() const;
 };
+
+static constexpr aabb WHOLE_VOLUME{{vec3{-INFINITY, -INFINITY, -INFINITY},
+                                    vec3{INFINITY, INFINITY, INFINITY}}};
+
+[[nodiscard]] constexpr inline aabb aabb::bounding_box() const {
+    return WHOLE_VOLUME;
+}
+
+[[nodiscard]] constexpr inline aabb operator*(const quaternion &a,
+                                              const aabb &box) {
+    aabb res;
+    box.foreach_vert([&res, &a](const vec3 &vert) { res.extend(a * vert); });
+    return res;
+}
+
+[[nodiscard]] constexpr inline aabb operator*(const aabb &box,
+                                              const quaternion &a) {
+    return a * box;
+}
+
+[[nodiscard]] constexpr inline aabb operator+(const vec3 &p, const aabb &box) {
+    return {{
+        box.vs[0] + p,
+        box.vs[1] + p,
+    }};
+}
+
+[[nodiscard]] constexpr inline aabb operator+(const aabb &box, const vec3 &p) {
+    return p + box;
+}
 
 struct plane {
     vec3 normal;
 
     [[nodiscard]] constexpr inline vec3 normal_at(const vec3 &pos) const {
         return normal;
+    }
+
+    [[nodiscard]] constexpr inline vec3 center() const { return vec3{0, 0, 0}; }
+
+    [[nodiscard]] constexpr inline aabb bounding_box() const {
+        return WHOLE_VOLUME;
     }
 };
 
@@ -177,6 +266,15 @@ struct ellipsoid {
 
     [[nodiscard]] constexpr inline vec3 normal_at(const vec3 &pos) const {
         return norm(pos / radius / radius);
+    }
+
+    [[nodiscard]] constexpr inline vec3 center() const { return vec3{0, 0, 0}; }
+
+    [[nodiscard]] constexpr inline aabb bounding_box() const {
+        aabb res;
+        res.extend(radius);
+        res.extend(-radius);
+        return res;
     }
 };
 
@@ -189,6 +287,15 @@ struct box {
         auto axis = std::max_element(res.val.begin(), res.val.end());
         res = {0, 0, 0};
         *axis = std::signbit(npos.val[axis - &res.val[0]]) ? -1 : 1;
+        return res;
+    }
+
+    [[nodiscard]] constexpr inline vec3 center() const { return vec3{0, 0, 0}; }
+
+    [[nodiscard]] constexpr inline aabb bounding_box() const {
+        aabb res;
+        res.extend(half_size);
+        res.extend(-half_size);
         return res;
     }
 };
@@ -218,6 +325,18 @@ struct triangle {
 
     [[nodiscard]] constexpr inline float square() const {
         return dot(v(), u()) / 2;
+    }
+
+    [[nodiscard]] constexpr inline vec3 center() const {
+        return (a() + b() + c()) / 3;
+    }
+
+    [[nodiscard]] constexpr inline aabb bounding_box() const {
+        aabb res;
+        res.extend(a());
+        res.extend(b());
+        res.extend(c());
+        return res;
     }
 };
 
@@ -268,6 +387,18 @@ struct Object {
 
     [[nodiscard]] constexpr inline color3 emission() const {
         return std::visit([](auto &mat) { return mat.emission; }, material);
+    }
+
+    [[nodiscard]] constexpr inline vec3 center() const {
+        return position +
+               rotation * std::visit([](auto &shape) { return shape.center(); },
+                                     shape);
+    }
+    [[nodiscard]] constexpr inline aabb bounding_box() const {
+        return position +
+               rotation *
+                   std::visit([](auto &shape) { return shape.bounding_box(); },
+                              shape);
     }
 };
 

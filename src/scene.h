@@ -110,7 +110,9 @@ struct Scene {
                     geometry::box{typed_read<geometry::vec3>(in)};
             } else if (buf == "TRIANGLE") {
                 res.objects.back().shape =
-                    geometry::triangle{typed_read<geometry::vec3>(in), typed_read<geometry::vec3>(in), typed_read<geometry::vec3>(in)};
+                    geometry::triangle{typed_read<geometry::vec3>(in),
+                                       typed_read<geometry::vec3>(in),
+                                       typed_read<geometry::vec3>(in)};
             } else if (buf == "POSITION") {
                 in >> res.objects.back().position;
             } else if (buf == "ROTATION") {
@@ -134,7 +136,8 @@ struct Scene {
                     std::get<geometry::dielectric>(res.objects.back().material)
                         .ior;
             } else if (buf == "EMISSION") {
-                std::visit([&in](auto &mat) { in >> mat.emission; }, res.objects.back().material);
+                std::visit([&in](auto &mat) { in >> mat.emission; },
+                           res.objects.back().material);
             }
             // endregion
             // region lights
