@@ -253,19 +253,34 @@ struct BVH {
                                 intersect(ray, obj_by_id(obj_id), min_dst),
                                 INFINITY);
         }
-
-        if (node.left_child != NO_CHILD &&
-            intersect(ray, nodes[node.left_child].bounding_box, min_dst)
-                .has_value()) {
-            update_intersection(intr,
-                                intersect_ray(ray, min_dst, node.left_child));
-        }
-        
-        if (node.right_child != NO_CHILD &&
-            intersect(ray, nodes[node.right_child].bounding_box, min_dst)
-                .has_value()) {
-            update_intersection(intr,
-                                intersect_ray(ray, min_dst, node.right_child));
+        auto d_left =
+            node.left_child == NO_CHILD
+                ? std::nullopt
+                : intersect(ray, nodes[node.left_child].bounding_box, min_dst);
+        auto d_right =
+            node.right_child == NO_CHILD
+                ? std::nullopt
+                : intersect(ray, nodes[node.right_child].bounding_box, min_dst);
+        if (d_left.has_value() && d_right.has_value()) {
+            std::uint32_t id1 = node.left_child;
+            std::uint32_t id2 = node.right_child;
+            if (d_left > d_right) {
+                std::swap(id1, id2);
+                std::swap(d_left, d_right);
+            }
+            update_intersection(intr, intersect_ray(ray, min_dst, id1));
+            if (!intr.has_value() || intr->t > d_right) {
+                update_intersection(intr, intersect_ray(ray, min_dst, id2));
+            }
+        } else {
+            if (d_left.has_value()) {
+                update_intersection(
+                    intr, intersect_ray(ray, min_dst, node.left_child));
+            }
+            if (d_right.has_value()) {
+                update_intersection(
+                    intr, intersect_ray(ray, min_dst, node.right_child));
+            }
         }
         return intr;
     }
