@@ -10,7 +10,6 @@
 #include <atomic>
 #include <cassert>
 #include <cmath>
-#include <iterator>
 #include <limits>
 #include <numbers>
 #include <optional>
@@ -786,7 +785,7 @@ inline void run_raytracer(const Scene &scene, Image &image) {
     RaytracerStaticContext ctx(scene);
 
     if constexpr (USE_MULTITHREADING) {
-        auto worker_count = std::thread::hardware_concurrency();
+        auto worker_count = std::max(std::thread::hardware_concurrency(), 1u);
         std::vector<std::thread> workers;
         workers.reserve(worker_count);
         std::atomic_int next_span(0);

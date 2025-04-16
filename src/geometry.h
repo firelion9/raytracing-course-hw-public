@@ -325,7 +325,7 @@ struct triangle {
     }
 
     [[nodiscard]] constexpr inline float square() const {
-        return dot(v(), u()) / 2;
+        return crs(v(), u()).len() / 2;
     }
 
     [[nodiscard]] constexpr inline vec3 center() const {
