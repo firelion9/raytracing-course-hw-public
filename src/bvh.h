@@ -228,12 +228,14 @@ struct BVH {
 
     [[nodiscard]] inline ray_cast_res intersect_ray(const geometry::ray &ray,
                                                     float min_dst) const {
+        if (root == NO_CHILD) return {};
         return intersect_ray(ray, min_dst, root);
     }
 
     template <class Fn>
     constexpr inline void foreach_intersection(const geometry::ray &ray,
                                                float min_dst, Fn &&fn) const {
+        if (root == NO_CHILD) return;
         foreach_intersection(ray, min_dst, std::forward<Fn>(fn), root);
     }
 

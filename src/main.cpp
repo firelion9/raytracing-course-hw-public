@@ -1,6 +1,8 @@
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
+#include <filesystem>
 
 #include "image.h"
 #include "raytracer.h"
@@ -14,17 +16,15 @@ int main(int argc, char **argv) try {
         return EXIT_FAILURE;
     }
 
-    Scene scene;
-    {
-        std::ifstream in((argv[1]));
-        scene = Scene::parse(in);
-    }
+    Scene scene = parse_gltf_scene(std::filesystem::path(argv[1]));
     Image img(scene.camera.width, scene.camera.height, scene.bg_color);
 
     run_raytracer(scene, img);
 
     {
-        std::ofstream out(argv[2], std::ios::binary);
+        std::filesystem::path out_path = argv[2];
+        std::filesystem::create_directories(out_path.parent_path());
+        std::ofstream out(out_path, std::ios::binary);
         img.write(out);
     }
 
