@@ -4,8 +4,10 @@
 #include "geometry.h"
 #include <algorithm>
 #include <array>
+#include <climits>
 #include <cmath>
 #include <cstdint>
+#include <iostream>
 #include <limits>
 #include <optional>
 #include <span>
@@ -228,14 +230,16 @@ struct BVH {
 
     [[nodiscard]] inline ray_cast_res intersect_ray(const geometry::ray &ray,
                                                     float min_dst) const {
-        if (root == NO_CHILD) return {};
+        if (root == NO_CHILD)
+            return {};
         return intersect_ray(ray, min_dst, root);
     }
 
     template <class Fn>
     constexpr inline void foreach_intersection(const geometry::ray &ray,
                                                float min_dst, Fn &&fn) const {
-        if (root == NO_CHILD) return;
+        if (root == NO_CHILD)
+            return;
         foreach_intersection(ray, min_dst, std::forward<Fn>(fn), root);
     }
 
@@ -341,7 +345,7 @@ struct BVH {
         }
 
         acc_box = geometry::aabb();
-        tmp_pref.push_back(acc_box.surface_area());
+        tmp_suf.push_back(acc_box.surface_area());
         for (int i = objs.size() - 1; i >= 0; --i) {
             auto &obj = *objs[i];
             acc_box.extend(obj.bounding_box());
@@ -420,7 +424,7 @@ struct BVH {
     template <class Pred>
     [[nodiscard]] static inline BVH
     build(const std::span<const geometry::Object> &objs, Pred &&pred,
-          std::uint32_t min_node_size = 4, std::uint32_t max_depth = 32) {
+          std::uint32_t min_node_size = 4, std::uint32_t max_depth = 64) {
         BVH res;
         if (objs.size() == 0) {
             res.root = NO_CHILD;

@@ -23,7 +23,7 @@ using json = nlohmann::json;
 
 constexpr unsigned DEFAULT_HEIGHT = 600;
 constexpr unsigned DEFAULT_RAY_DEPTH = 8;
-constexpr unsigned DEFAULT_SAMPLES = 10;
+constexpr unsigned DEFAULT_SAMPLES = 50;
 
 template <class T> static inline T typed_read(std::istream &in) {
     T res;

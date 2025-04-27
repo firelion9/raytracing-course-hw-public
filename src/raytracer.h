@@ -762,6 +762,14 @@ trace_ray(RaytracerThreadContext &context, const geometry::ray &ray,
                : context.scene().bg_color;
 }
 
+[[nodiscard]] static inline geometry::color3 
+sanitize_nans(geometry::color3 clr) {
+    if (std::isnan(clr.r())) clr.r() = 0;
+    if (std::isnan(clr.g())) clr.g() = 0;
+    if (std::isnan(clr.b())) clr.b() = 0;
+    return clr;
+}
+
 [[nodiscard]] static inline geometry::color3
 render_pixel(RaytracerThreadContext &context, int x, int y) {
     if constexpr (std::is_same_v<std::remove_const_t<decltype(ALGORITHM_TOKEN)>,
@@ -769,7 +777,7 @@ render_pixel(RaytracerThreadContext &context, int x, int y) {
         geometry::color3 res = {0, 0, 0};
         for (int s = 0; s < context.scene().samples; ++s) {
             auto ray = gen_ray(context, x, y);
-            res += trace_ray(context, ray, context.scene().ray_depth);
+            res += sanitize_nans(trace_ray(context, ray, context.scene().ray_depth));
         }
         return res / context.scene().samples;
     } else {
