@@ -226,7 +226,8 @@ struct triangle_dist {
         float res = 0;
         for (auto t : intersections) {
             auto y = ray.at(t);
-            res += light_surface_projection_multiplier(x, y, triangle.normal_at(y), dir);
+            res += light_surface_projection_multiplier(
+                x, y, triangle.normal_at(y), dir);
         }
         return res / triangle.square();
     }
@@ -683,10 +684,14 @@ shade(RaytracerThreadContext &context, const geometry::ray &ray,
         return material.emission;
     }
 
-    return material.emission +
-           intersection_info.obj->color / std::numbers::pi_v<float> *
-               trace_ray(context, {pos, dir}, max_depth) *
-               geometry::dot(dir, intersection_info.normal) / p;
+    auto scl = intersection_info.obj->color / std::numbers::pi_v<float> *
+                std::max(0.0f, geometry::dot(dir, intersection_info.normal)) /
+                p;
+    if (scl.len2() == 0.0f) {
+        return material.emission;
+    }
+
+    return material.emission + trace_ray(context, {pos, dir}, max_depth) * scl;
 }
 
 [[nodiscard]] constexpr static inline geometry::color3
@@ -762,11 +767,14 @@ trace_ray(RaytracerThreadContext &context, const geometry::ray &ray,
                : context.scene().bg_color;
 }
 
-[[nodiscard]] static inline geometry::color3 
+[[nodiscard]] static inline geometry::color3
 sanitize_nans(geometry::color3 clr) {
-    if (std::isnan(clr.r())) clr.r() = 0;
-    if (std::isnan(clr.g())) clr.g() = 0;
-    if (std::isnan(clr.b())) clr.b() = 0;
+    if (std::isnan(clr.r()))
+        clr.r() = 0;
+    if (std::isnan(clr.g()))
+        clr.g() = 0;
+    if (std::isnan(clr.b()))
+        clr.b() = 0;
     return clr;
 }
 
@@ -777,7 +785,8 @@ render_pixel(RaytracerThreadContext &context, int x, int y) {
         geometry::color3 res = {0, 0, 0};
         for (int s = 0; s < context.scene().samples; ++s) {
             auto ray = gen_ray(context, x, y);
-            res += sanitize_nans(trace_ray(context, ray, context.scene().ray_depth));
+            res += sanitize_nans(
+                trace_ray(context, ray, context.scene().ray_depth));
         }
         return res / context.scene().samples;
     } else {
