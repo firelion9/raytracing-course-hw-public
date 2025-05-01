@@ -308,12 +308,12 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path, float ar) 
             geometry::vec3 scale = node.contains("scale")
                                        ? parse_vec3(node["scale"])
                                        : geometry::vec3(1, 1, 1);
-            geometry::matrix4 trs = node.contains("transform")
-                                        ? parse_mat4(node["transform"])
+            geometry::matrix4 trs = node.contains("matrix")
+                                        ? parse_mat4(node["matrix"])
                                         : geometry::matrix4::id();
 
             auto transform =
-                parent_transform *
+                parent_transform * trs *
                 geometry::matrix4::transform(scale, rotation, translation);
 
             if (node.contains("camera")) {
