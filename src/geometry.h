@@ -151,6 +151,108 @@ inline std::istream &operator>>(std::istream &stream, quaternion &q) {
     return stream >> q.v() >> q.w();
 }
 
+struct matrix4 {
+    std::array<vec4, 4> val{};
+
+    [[nodiscard]] static constexpr inline matrix4 translation(const vec3 &pos) {
+        return {{
+            vec4{1, 0, 0, pos.x()},
+            {0, 1, 0, pos.y()},
+            {0, 0, 1, pos.z()},
+            {0, 0, 0, 1},
+        }};
+    }
+
+    [[nodiscard]] static constexpr inline matrix4 scale(const vec3 &scl) {
+        return {{
+            vec4{scl.x(), 0, 0, 0},
+            {0, scl.y(), 0, 0},
+            {0, 0, scl.z(), 0},
+            {0, 0, 0, 1},
+        }};
+    }
+
+    [[nodiscard]] static constexpr inline matrix4 rotation(const quaternion &q) {
+        auto q1 = q;
+        const float w = q1.w();
+        const float x = q1.v().x();
+        const float y = q1.v().y();
+        const float z = q1.v().z();
+        
+        return {{
+            vec4{1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w),
+                 0},
+            vec4{2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w),
+                 0},
+            vec4{2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y),
+                 0},
+            {0, 0, 0, 1},
+        }};
+    }
+
+    [[nodiscard]] static constexpr inline matrix4
+    transform(const vec3 &scale, const quaternion &rotation,
+              const vec3 &translation);
+
+    [[nodiscard]] static constexpr inline matrix4 id() {
+        return {{
+            vec4{1, 0, 0, 0},
+            {0, 1, 0, 0},
+            {0, 0, 1, 0},
+            {0, 0, 0, 1},
+        }};
+    }
+
+    [[nodiscard]] constexpr inline vec3 apply(const vec3 &vec) const;
+};
+
+[[nodiscard]] constexpr inline matrix4 operator*(const matrix4 &a,
+                                                 const matrix4 &b) {
+    matrix4 res;
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            for (int k = 0; k < 4; ++k) {
+                res.val[i].val[k] += a.val[i].val[j] * b.val[j].val[k];
+            }
+        }
+    }
+
+    return res;
+}
+
+[[nodiscard]] constexpr inline vec4 operator*(const matrix4 &mat,
+                                              const vec4 &vec) {
+    vec4 res;
+    for (int i = 0; i < 4; ++i) {
+        res.val[i] = dot(mat.val[i], vec);
+    }
+
+    return res;
+}
+
+[[nodiscard]] constexpr inline vec4 operator*(const vec4 &vec,
+                                              const matrix4 &mat) {
+    vec4 res{0, 0, 0, 0};
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            res.val[j] += vec.val[i] * mat.val[i].val[j];
+        }
+    }
+
+    return res;
+}
+
+[[nodiscard]] constexpr inline matrix4
+matrix4::transform(const vec3 &scale, const quaternion &rotation,
+                   const vec3 &translation) {
+    return matrix4::translation(translation) * matrix4::rotation(rotation) *
+           matrix4::scale(scale);
+}
+
+[[nodiscard]] constexpr inline vec3 matrix4::apply(const vec3 &vec) const {
+    return ((*this) * vec4(vec, 1)).xyz();
+}
+
 struct ray {
     vec3 start;
     vec3 dir;
