@@ -20,7 +20,7 @@ int main(int argc, char **argv) try {
     unsigned height = std::strtol(argv[3], nullptr, 10);
     unsigned samples = std::strtol(argv[4], nullptr, 10);
 
-    Scene scene = parse_gltf_scene(std::filesystem::path(argv[1]));
+    Scene scene = parse_gltf_scene(std::filesystem::path(argv[1]), static_cast<float>(width) / height);
     scene.camera.width = width;
     scene.camera.height = height;
     scene.samples = samples;

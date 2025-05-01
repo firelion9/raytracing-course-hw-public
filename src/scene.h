@@ -275,11 +275,13 @@ load_indices(const Json &root,
     }
 }
 
-static Scene parse_gltf_scene(const std::filesystem::path &gltf_path) {
+static Scene parse_gltf_scene(const std::filesystem::path &gltf_path, float ar) {
     Scene res;
     res.ray_depth = DEFAULT_RAY_DEPTH;
     auto scene_struct = json::parse(std::ifstream(gltf_path));
-    int scene_idx = scene_struct["scene"];
+    int scene_idx = scene_struct.contains("scene")
+                        ? static_cast<int>(scene_struct["scene"])
+                        : 0;
     auto &scene_info = scene_struct["scenes"][scene_idx];
 
     std::vector<std::vector<std::uint8_t>> buffers;
@@ -294,7 +296,7 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path) {
     }
 
     std::function<void(int, const geometry::matrix4 &)> handle_node =
-        [&res, &scene_struct, &buffers, &handle_node](
+        [&res, &scene_struct, &buffers, &handle_node, ar](
             int node_idx, const geometry::matrix4 &parent_transform) {
             auto &node = scene_struct["nodes"][node_idx];
             geometry::quaternion rotation =
@@ -319,7 +321,7 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path) {
                 auto camera = scene_struct["cameras"][camera_idx];
                 auto perspective = camera["perspective"];
                 float fov_y = perspective["yfov"];
-                float aspect_ratio = perspective["aspectRatio"];
+                float aspect_ratio = perspective.contains("aspectRatio") ? static_cast<float>(perspective["aspectRatio"]) : ar;
                 res.camera.position =
                     (transform * geometry::vec4(0, 0, 0, 1)).xyz();
                 res.camera.forward =
