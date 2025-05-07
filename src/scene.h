@@ -428,9 +428,10 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path, float ar) 
                         break;
                     case 5:
                         for (int i = 2; i < cnt; ++i) {
+                            int off = i & 1;
                             auto p1 = transform.apply(coords[get_index(i - 2)]);
-                            auto p2 = transform.apply(coords[get_index(i - 1)]);
-                            auto p3 = transform.apply(coords[get_index(i - 0)]);
+                            auto p2 = transform.apply(coords[get_index(i - 1 + off)]);
+                            auto p3 = transform.apply(coords[get_index(i - off)]);
 
                             push_obj(p1, p2, p3);
                         }
