@@ -172,20 +172,21 @@ struct matrix4 {
         }};
     }
 
-    [[nodiscard]] static constexpr inline matrix4 rotation(const quaternion &q) {
+    [[nodiscard]] static constexpr inline matrix4
+    rotation(const quaternion &q) {
         auto q1 = q;
         const float w = q1.w();
         const float x = q1.v().x();
         const float y = q1.v().y();
         const float z = q1.v().z();
-        
+
         return {{
-            vec4{1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w),
-                 0},
-            vec4{2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w),
-                 0},
-            vec4{2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y),
-                 0},
+            vec4{1 - 2 * (y * y + z * z), 2 * (x * y - z * w),
+                 2 * (x * z + y * w), 0},
+            vec4{2 * (x * y + z * w), 1 - 2 * (x * x + z * z),
+                 2 * (y * z - x * w), 0},
+            vec4{2 * (x * z - y * w), 2 * (y * z + x * w),
+                 1 - 2 * (x * x + y * y), 0},
             {0, 0, 0, 1},
         }};
     }
@@ -350,59 +351,6 @@ static constexpr aabb WHOLE_VOLUME{{vec3{-INFINITY, -INFINITY, -INFINITY},
     return p + box;
 }
 
-struct plane {
-    vec3 normal;
-
-    [[nodiscard]] constexpr inline vec3 normal_at(const vec3 &pos) const {
-        return normal;
-    }
-
-    [[nodiscard]] constexpr inline vec3 center() const { return vec3{0, 0, 0}; }
-
-    [[nodiscard]] constexpr inline aabb bounding_box() const {
-        return WHOLE_VOLUME;
-    }
-};
-
-struct ellipsoid {
-    vec3 radius;
-
-    [[nodiscard]] constexpr inline vec3 normal_at(const vec3 &pos) const {
-        return norm(pos / radius / radius);
-    }
-
-    [[nodiscard]] constexpr inline vec3 center() const { return vec3{0, 0, 0}; }
-
-    [[nodiscard]] constexpr inline aabb bounding_box() const {
-        aabb res;
-        res.extend(radius);
-        res.extend(-radius);
-        return res;
-    }
-};
-
-struct box {
-    vec3 half_size;
-
-    [[nodiscard]] constexpr inline vec3 normal_at(const vec3 &pos) const {
-        vec3 npos = pos / half_size;
-        vec3 res = npos.abs();
-        auto axis = std::max_element(res.val.begin(), res.val.end());
-        res = {0, 0, 0};
-        *axis = std::signbit(npos.val[axis - &res.val[0]]) ? -1 : 1;
-        return res;
-    }
-
-    [[nodiscard]] constexpr inline vec3 center() const { return vec3{0, 0, 0}; }
-
-    [[nodiscard]] constexpr inline aabb bounding_box() const {
-        aabb res;
-        res.extend(half_size);
-        res.extend(-half_size);
-        return res;
-    }
-};
-
 struct triangle {
     std::array<vec3, 3> vertices;
 
@@ -443,13 +391,7 @@ struct triangle {
     }
 };
 
-using shape = std::variant<plane, ellipsoid, box, triangle>;
-
-[[nodiscard]] constexpr inline vec3 normal_at(const geometry::shape &shape,
-                                              const vec3 &pos) {
-    return std::visit(
-        [&pos](const auto &shape) { return shape.normal_at(pos); }, shape);
-}
+using shape = triangle;
 
 template <class shape_type, class vec_type>
 [[nodiscard]] constexpr inline geometry::ray
@@ -476,16 +418,13 @@ struct dielectric : material_base {
 using material = std::variant<diffuse, metallic, dielectric>;
 
 struct Object {
-    vec3 position;
-    quaternion rotation = quaternion(geometry::vec3(0, 0, 0), 1);
     color3 color = {0, 0, 0};
 
     geometry::shape shape;
     geometry::material material;
 
     [[nodiscard]] constexpr inline vec3 normal_at(const vec3 &pos) const {
-        return rotation *
-               geometry::normal_at(shape, rotation.conj() * (pos - position));
+        return shape.normal_at(pos);
     }
 
     [[nodiscard]] constexpr inline color3 emission() const {
@@ -493,32 +432,11 @@ struct Object {
     }
 
     [[nodiscard]] constexpr inline vec3 center() const {
-        return position +
-               rotation * std::visit([](auto &shape) { return shape.center(); },
-                                     shape);
+        return shape.center();
     }
     [[nodiscard]] constexpr inline aabb bounding_box() const {
-        return position +
-               rotation *
-                   std::visit([](auto &shape) { return shape.bounding_box(); },
-                              shape);
+        return shape.bounding_box();
     }
-};
-
-struct directed_light {
-    vec3 direction;
-};
-
-struct point_light {
-    vec3 position;
-    vec3 attenuation;
-};
-
-using light = std::variant<directed_light, point_light>;
-
-struct LightSource {
-    color3 intensity{1, 1, 1};
-    geometry::light light;
 };
 } // namespace geometry
 

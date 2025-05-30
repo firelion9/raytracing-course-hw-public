@@ -65,57 +65,6 @@ using ray_cast_res = std::optional<ray_intersection_info>;
     } while (false)
 
 [[nodiscard]] constexpr static inline intersection_res
-intersect_ray_obj(const geometry::ray &ray, const geometry::plane &obj,
-                  float min_dst) {
-    intersection_res res;
-
-    float t = -geometry::dot(ray.start, obj.normal) /
-              geometry::dot(ray.dir, obj.normal);
-
-    push_t(t, min_dst);
-
-    return res;
-}
-
-[[nodiscard]] constexpr static inline intersection_res
-intersect_ray_obj(const geometry::ray &ray, const geometry::ellipsoid &obj,
-                  float min_dst) {
-    intersection_res res;
-
-    float a = dot(ray.dir / obj.radius, ray.dir / obj.radius);
-    float hb = dot(ray.start / obj.radius, ray.dir / obj.radius);
-    float c = dot(ray.start / obj.radius, ray.start / obj.radius) - 1;
-    float hd = sqrt(hb * hb - a * c);
-
-    float t1 = (-hb - hd) / a;
-    float t2 = (-hb + hd) / a;
-
-    push_t(t1, min_dst);
-    push_t(t2, min_dst);
-
-    return res;
-}
-
-[[nodiscard]] constexpr static inline intersection_res
-intersect_ray_obj(const geometry::ray &ray, const geometry::box &box,
-                  float min_dst) {
-    intersection_res res;
-
-    auto intrs1 = (-box.half_size - ray.start) / ray.dir;
-    auto intrs2 = (box.half_size - ray.start) / ray.dir;
-
-    auto t_min = max_component(min(intrs1, intrs2));
-    auto t_max = min_component(max(intrs1, intrs2));
-
-    if (t_min <= t_max) {
-        push_t(t_min, min_dst);
-        push_t(t_max, min_dst);
-    }
-
-    return res;
-}
-
-[[nodiscard]] constexpr static inline intersection_res
 intersect_ray_obj(const geometry::ray &ray, const geometry::triangle &triangle,
                   float min_dst) {
     intersection_res res;
@@ -137,21 +86,9 @@ intersect_ray_obj(const geometry::ray &ray, const geometry::triangle &triangle,
 }
 
 [[nodiscard]] constexpr static inline intersection_res
-intersect_unbiased(const geometry::ray &ray, const geometry::Object &obj,
-                   float min_dst) {
-    return std::visit(
-        [&ray, min_dst](const auto &shape) {
-            return intersect_ray_obj(ray, shape, min_dst);
-        },
-        obj.shape);
-}
-
-[[nodiscard]] constexpr static inline intersection_res
 intersect(const geometry::ray &ray, const geometry::Object &obj,
           float min_dst) {
-    geometry::quaternion rot = obj.rotation.conj();
-    return intersect_unbiased({(ray.start - obj.position) * rot, ray.dir * rot},
-                              obj, min_dst);
+    return intersect_ray_obj({ray.start, ray.dir}, obj.shape, min_dst);
 }
 
 [[nodiscard]] constexpr static inline ray_intersection_info
