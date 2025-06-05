@@ -282,8 +282,15 @@ def _gen_vector_def(fields, vec_type, field_type, type_builder):
     res = f"struct {vec_type} " + "{\n"
     res += f"{indent}std::array<{field_type}, {len(fields)}> val;\n\n"
     res += (
+        f"{indent}[[nodiscard]] constexpr inline {vec_type}({field_type} x = 0)"
+        + " : val({"
+        + ", ".join(["x"] * len(fields))
+        + "}) "
+        + "{}\n"
+    )
+    res += (
         f"{indent}[[nodiscard]] constexpr inline {vec_type}("
-        + ", ".join(map(lambda f: f"{field_type} {f} = 0", fields))
+        + ", ".join(map(lambda f: f"{field_type} {f}", fields))
         + ") : val({"
         + ", ".join(fields)
         + "}) "

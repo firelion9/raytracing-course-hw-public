@@ -205,6 +205,8 @@ struct matrix4 {
     }
 
     [[nodiscard]] constexpr inline vec3 apply(const vec3 &vec) const;
+
+    [[nodiscard]] constexpr inline vec3 apply3(const vec3 &vec) const;
 };
 
 [[nodiscard]] constexpr inline matrix4 operator*(const matrix4 &a,
@@ -252,6 +254,10 @@ matrix4::transform(const vec3 &scale, const quaternion &rotation,
 
 [[nodiscard]] constexpr inline vec3 matrix4::apply(const vec3 &vec) const {
     return ((*this) * vec4(vec, 1)).xyz();
+}
+
+[[nodiscard]] constexpr inline vec3 matrix4::apply3(const vec3 &vec) const {
+    return ((*this) * vec4(vec, 0)).xyz();
 }
 
 struct ray {
@@ -403,37 +409,39 @@ reflect(const shape_type &shape, const geometry::ray &ray, float t) {
     return {base, out_dir};
 }
 
-struct material_base {
+struct material {
+    color3 color = {1, 1, 1};
     color3 emission = {0, 0, 0};
+    float roughness = 1.0;
+    float metallic = 1.0;
+    float ior = 1.5;
 };
 
-struct diffuse : material_base {};
-
-struct metallic : material_base {};
-
-struct dielectric : material_base {
-    float ior = 0;
+struct object_attrs {
+    std::array<vec3, 3> normals;
 };
-
-using material = std::variant<diffuse, metallic, dielectric>;
 
 struct Object {
-    color3 color = {0, 0, 0};
-
     geometry::shape shape;
+    geometry::object_attrs attrs;
     geometry::material material;
 
     [[nodiscard]] constexpr inline vec3 normal_at(const vec3 &pos) const {
         return shape.normal_at(pos);
     }
 
-    [[nodiscard]] constexpr inline color3 emission() const {
-        return std::visit([](auto &mat) { return mat.emission; }, material);
+    [[nodiscard]] constexpr inline const color3 &emission() const {
+        return material.emission;
+    }
+
+    [[nodiscard]] constexpr inline const color3 &color() const {
+        return material.color;
     }
 
     [[nodiscard]] constexpr inline vec3 center() const {
         return shape.center();
     }
+
     [[nodiscard]] constexpr inline aabb bounding_box() const {
         return shape.bounding_box();
     }

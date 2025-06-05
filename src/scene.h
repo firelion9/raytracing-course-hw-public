@@ -160,7 +160,8 @@ load_indices(const Json &root,
     }
 }
 
-static Scene parse_gltf_scene(const std::filesystem::path &gltf_path, float ar) {
+static Scene parse_gltf_scene(const std::filesystem::path &gltf_path,
+                              float ar) {
     Scene res;
     res.ray_depth = DEFAULT_RAY_DEPTH;
     auto scene_struct = json::parse(std::ifstream(gltf_path));
@@ -181,8 +182,8 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path, float ar) 
     }
 
     std::function<void(int, const geometry::matrix4 &)> handle_node =
-        [&res, &scene_struct, &buffers, &handle_node, ar](
-            int node_idx, const geometry::matrix4 &parent_transform) {
+        [&res, &scene_struct, &buffers, &handle_node,
+         ar](int node_idx, const geometry::matrix4 &parent_transform) {
             auto &node = scene_struct["nodes"][node_idx];
             geometry::quaternion rotation =
                 node.contains("rotation") ? parse_quaternion(node["rotation"])
@@ -206,7 +207,10 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path, float ar) 
                 auto camera = scene_struct["cameras"][camera_idx];
                 auto perspective = camera["perspective"];
                 float fov_y = perspective["yfov"];
-                float aspect_ratio = perspective.contains("aspectRatio") ? static_cast<float>(perspective["aspectRatio"]) : ar;
+                float aspect_ratio =
+                    perspective.contains("aspectRatio")
+                        ? static_cast<float>(perspective["aspectRatio"])
+                        : ar;
                 res.camera.position =
                     (transform * geometry::vec4(0, 0, 0, 1)).xyz();
                 res.camera.forward =
@@ -238,7 +242,8 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path, float ar) 
                             material
                                 ["/extensions/KHR_materials_emissive_strength/emissiveStrength"_json_pointer]);
                     }
-                    geometry::material mat = geometry::diffuse{emission};
+                    geometry::material mat;
+                    mat.emission = emission;
                     if (material.contains("pbrMetallicRoughness")) {
                         auto &pbrMetallicRoughness =
                             material["pbrMetallicRoughness"];
@@ -246,20 +251,44 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path, float ar) 
                             auto &color =
                                 pbrMetallicRoughness["baseColorFactor"];
                             if (color[3] < 1) {
-                                mat = geometry::dielectric{emission, 1.5};
+                                mat.ior = 1.5;
                             }
-                            clr = parse_color3(color);
+                            mat.color = parse_color3(color);
                         }
                         if (!pbrMetallicRoughness.contains("metallicFactor") ||
                             pbrMetallicRoughness["metallicFactor"] > 0) {
-                            mat = geometry::metallic{emission};
+                            float roughness =
+                                pbrMetallicRoughness.contains("roughnessFactor")
+                                    ? static_cast<float>(
+                                          pbrMetallicRoughness
+                                              ["roughnessFactor"])
+                                    : 1.0f;
+                            mat.roughness = roughness;
                         }
+                        mat.metallic =
+                            pbrMetallicRoughness.contains("metallicFactor")
+                                ? static_cast<float>(
+                                      pbrMetallicRoughness["metallicFactor"])
+                                : 1.0f;
                     }
 
                     int coord_accessor_idx =
                         primitive["attributes"]["POSITION"];
                     auto coords = interpret_accessor<const geometry::vec3>(
                         scene_struct, buffers, coord_accessor_idx);
+
+                    std::optional<int> normal_accessor_idx =
+                        primitive.contains("/attributes/NORMAL"_json_pointer)
+                            ? std::make_optional(
+                                  primitive["attributes"]["NORMAL"])
+                            : std::nullopt;
+                    ;
+                    auto normals =
+                        normal_accessor_idx.has_value()
+                            ? interpret_accessor<const geometry::vec3>(
+                                  scene_struct, buffers,
+                                  normal_accessor_idx.value())
+                            : std::span<const geometry::vec3>();
 
                     auto indices = load_indices(scene_struct, buffers,
                                                 primitive["indices"]);
@@ -291,34 +320,60 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path, float ar) 
                                    ? static_cast<int>(primitive["mode"])
                                    : 4;
 
-                    auto push_obj = [&res, &mat,
-                                     &clr](const geometry::vec3 p1,
-                                           const geometry::vec3 p2,
-                                           const geometry::vec3 p3) {
-                        res.objects.emplace_back();
-                        auto &obj = res.objects.back();
-                        obj.material = mat;
-                        obj.color = clr;
-                        obj.shape = geometry::triangle{p1, p2, p3};
+                    auto push_obj =
+                        [&res, &mat,
+                         &clr](const geometry::vec3 p1, const geometry::vec3 p2,
+                               const geometry::vec3 p3,
+                               const std::optional<geometry::vec3> n1,
+                               const std::optional<geometry::vec3> n2,
+                               const std::optional<geometry::vec3> n3) {
+                            res.objects.emplace_back();
+                            auto &obj = res.objects.back();
+                            obj.material = mat;
+                            obj.shape = geometry::triangle{p1, p2, p3};
+                            if (n1.has_value() && n2.has_value() &&
+                                n3.has_value()) {
+                                obj.attrs.normals = {n1.value(), n2.value(),
+                                                     n3.value()};
+                            } else {
+                                auto normal = obj.shape.normal_at(
+                                    geometry::vec3{0, 0, 0});
+                                obj.attrs.normals = {normal, normal, normal};
+                            }
+                        };
+
+                    auto get_normal = [&normals, &transform](int idx) {
+                        return normals.empty()
+                                   ? std::nullopt
+                                   : std::make_optional(geometry::norm(
+                                         transform.apply3(normals[idx])));
                     };
+
                     switch (mode) {
                     case 4:
                         for (int i = 0; i < cnt; i += 3) {
                             auto p1 = transform.apply(coords[get_index(i)]);
                             auto p2 = transform.apply(coords[get_index(i + 1)]);
                             auto p3 = transform.apply(coords[get_index(i + 2)]);
+                            auto n1 = get_normal(get_index(i));
+                            auto n2 = get_normal(get_index(i + 1));
+                            auto n3 = get_normal(get_index(i + 2));
 
-                            push_obj(p1, p2, p3);
+                            push_obj(p1, p2, p3, n1, n2, n3);
                         }
                         break;
                     case 5:
                         for (int i = 2; i < cnt; ++i) {
                             int off = i & 1;
                             auto p1 = transform.apply(coords[get_index(i - 2)]);
-                            auto p2 = transform.apply(coords[get_index(i - 1 + off)]);
-                            auto p3 = transform.apply(coords[get_index(i - off)]);
-
-                            push_obj(p1, p2, p3);
+                            auto p2 =
+                                transform.apply(coords[get_index(i - 1 + off)]);
+                            auto p3 =
+                                transform.apply(coords[get_index(i - off)]);
+                            auto n1 = get_normal(get_index(i - 2));
+                            auto n2 = get_normal(get_index(i - 1 + off));
+                            auto n3 = get_normal(get_index(i - off));
+                            push_obj(p1, p2, p3, n1, n2, n3);
                         }
                         break;
                     }

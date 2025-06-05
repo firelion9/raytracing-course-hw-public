@@ -15,59 +15,22 @@
 #include <variant>
 #include <vector>
 
-template <size_t capacity, class T> struct small_vector {
-    std::array<T, capacity> data;
-    size_t size = 0;
-
-    [[nodiscard]] constexpr inline small_vector() = default;
-    [[nodiscard]] constexpr inline small_vector(const small_vector &) = default;
-
-    constexpr inline void push(const T &e) { data[size++] = e; }
-
-    [[nodiscard]] constexpr inline T &operator[](size_t idx) {
-        return data[idx];
-    }
-    [[nodiscard]] constexpr inline const T &operator[](size_t idx) const {
-        return data[idx];
-    }
-
-    [[nodiscard]] constexpr inline auto begin() const { return data.begin(); }
-    [[nodiscard]] constexpr inline auto end() const {
-        return data.begin() + size;
-    }
-
-    [[nodiscard]] constexpr inline auto begin() { return data.begin(); }
-    [[nodiscard]] constexpr inline auto end() { return data.begin() + size; }
-
-    [[nodiscard]] constexpr inline auto empty() const { return size == 0; }
-
-    [[nodiscard]] constexpr inline auto min() const {
-        auto res = data[0];
-        for (int i = 1; i < size; ++i)
-            res = std::min(res, data[i]);
-        return res;
-    }
-};
-
 struct ray_intersection_info {
     geometry::vec3 normal;
+    geometry::vec3 shading_normal;
     float t = 0;
     const geometry::Object *obj;
     bool is_inside;
 };
-using intersection_res = small_vector<2, float>;
+
+using light_intersection_info =
+    std::pair<geometry::vec3, const geometry::Object *>;
+using intersection_res = std::optional<light_intersection_info>;
 using ray_cast_res = std::optional<ray_intersection_info>;
 
-#define push_t(t, min_dst)                                                     \
-    do {                                                                       \
-        if (t >= min_dst)                                                      \
-            res.push(t);                                                       \
-    } while (false)
-
-[[nodiscard]] constexpr static inline intersection_res
-intersect_ray_obj(const geometry::ray &ray, const geometry::triangle &triangle,
-                  float min_dst) {
-    intersection_res res;
+[[nodiscard]] constexpr static inline geometry::vec3
+intersect_ray_triangle(const geometry::ray &ray,
+                       const geometry::triangle &triangle) {
 
     auto av = triangle.v();
     auto au = triangle.u();
@@ -78,53 +41,72 @@ intersect_ray_obj(const geometry::ray &ray, const geometry::triangle &triangle,
                              geometry::det(av, au, y)) /
               geometry::det(av, au, at);
 
-    if (xs.x() >= 0 && xs.y() >= 0 && xs.x() + xs.y() <= 1 && xs.z() >= 0) {
-        push_t(xs.z(), min_dst);
+    return xs;
+}
+
+[[nodiscard]] constexpr static inline std::optional<geometry::vec3>
+intersect(const geometry::ray &ray, const geometry::triangle &obj,
+          float min_dst) {
+    intersection_res res;
+
+    auto xs = intersect_ray_triangle(ray, obj);
+
+    if (xs.x() >= 0 && xs.y() >= 0 && xs.x() + xs.y() <= 1 &&
+        xs.z() >= min_dst) {
+        return xs;
     }
 
-    return res;
+    return std::nullopt;
 }
 
 [[nodiscard]] constexpr static inline intersection_res
 intersect(const geometry::ray &ray, const geometry::Object &obj,
           float min_dst) {
-    return intersect_ray_obj({ray.start, ray.dir}, obj.shape, min_dst);
+    intersection_res res;
+
+    auto xs = intersect(ray, obj.shape, min_dst);
+    if (xs.has_value()) {
+        return std::make_pair(xs.value(), &obj);
+    }
+
+    return std::nullopt;
 }
 
 [[nodiscard]] constexpr static inline ray_intersection_info
-to_intersection_info(const geometry::Object &obj, const geometry::ray &ray,
-                     float t) {
+to_intersection_info(const light_intersection_info &intr,
+                     const geometry::ray &ray) {
+    auto b = intr.first.x();
+    auto c = intr.first.y();
+    auto a = 1 - b - c;
+    auto t = intr.first.z();
+    auto &obj = *intr.second;
+    auto &tr = obj.shape;
+
     auto pos = ray.at(t);
     auto normal = obj.normal_at(pos);
     auto is_inside = geometry::dot(normal, ray.dir) > 0;
-    return {is_inside ? -normal : normal, t, &obj, is_inside};
-}
+    auto shading_normal =
+        geometry::norm(obj.attrs.normals[0] * a + obj.attrs.normals[1] * b +
+                       obj.attrs.normals[2] * c);
 
-constexpr static inline void
-update_intersection(ray_cast_res &res, const geometry::ray &ray,
-                    const geometry::Object &obj,
-                    const intersection_res &intersection, float max_dst) {
-    if (intersection.empty())
-        return;
-    auto t = intersection.min();
-    if (t > max_dst)
-        return;
-
-    if (!res.has_value() || res->t > t) {
-        res = to_intersection_info(obj, ray, t);
+    if (geometry::dot(normal, shading_normal) < 0) {
+        shading_normal = -shading_normal;
     }
+
+    return {is_inside ? -normal : normal,
+            is_inside ? -shading_normal : shading_normal, t, &obj, is_inside};
 }
 
 constexpr static inline void
-update_intersection(ray_cast_res &res, const ray_cast_res &intersection,
+update_intersection(intersection_res &res, const intersection_res &intersection,
                     float max_dst = INFINITY) {
     if (!intersection.has_value())
         return;
-    auto t = intersection->t;
+    auto t = intersection->first.z();
     if (t > max_dst)
         return;
 
-    if (!res.has_value() || res->t > t) {
+    if (!res.has_value() || res->first.z() > t) {
         res = intersection;
     }
 }
@@ -169,7 +151,12 @@ struct BVH {
                                                     float min_dst) const {
         if (root == NO_CHILD)
             return {};
-        return intersect_ray(ray, min_dst, root);
+        auto res = intersect_ray(ray, min_dst, root);
+        if (res.has_value()) {
+            return to_intersection_info(res.value(), ray);
+        } else {
+            return std::nullopt;
+        }
     }
 
     template <class Fn>
@@ -185,16 +172,15 @@ struct BVH {
         return *objects[id];
     }
 
-    [[nodiscard]] inline ray_cast_res
+    [[nodiscard]] inline intersection_res
     intersect_ray(const geometry::ray &ray, float min_dst,
                   std::uint32_t node_id) const {
-        ray_cast_res intr;
+        intersection_res intr;
         const BVHNode &node = nodes[node_id];
         for (std::uint32_t obj_id = node.obj_begin; obj_id < node.obj_end;
              ++obj_id) {
-            update_intersection(intr, ray, obj_by_id(obj_id),
-                                intersect(ray, obj_by_id(obj_id), min_dst),
-                                INFINITY);
+            update_intersection(
+                intr, intersect(ray, obj_by_id(obj_id), min_dst), INFINITY);
         }
         auto d_left =
             node.left_child == NO_CHILD
@@ -212,7 +198,7 @@ struct BVH {
                 std::swap(d_left, d_right);
             }
             update_intersection(intr, intersect_ray(ray, min_dst, id1));
-            if (!intr.has_value() || intr->t > d_right) {
+            if (!intr.has_value() || intr->first.z() > d_right) {
                 update_intersection(intr, intersect_ray(ray, min_dst, id2));
             }
         } else {
@@ -234,8 +220,9 @@ struct BVH {
         const BVHNode &node = nodes[node_id];
         for (std::uint32_t obj_id = node.obj_begin; obj_id < node.obj_end;
              ++obj_id) {
-            for (auto t : intersect(ray, obj_by_id(obj_id), min_dst)) {
-                fn(ray, to_intersection_info(obj_by_id(obj_id), ray, t));
+            if (auto intr = intersect(ray, obj_by_id(obj_id), min_dst);
+                intr.has_value()) {
+                fn(ray, to_intersection_info(intr.value(), ray));
             }
         }
 

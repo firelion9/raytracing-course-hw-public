@@ -3,7 +3,8 @@
 struct vec2 {
     std::array<float, 2> val;
 
-    [[nodiscard]] constexpr inline vec2(float x = 0, float y = 0) : val({x, y}) {}
+    [[nodiscard]] constexpr inline vec2(float x = 0) : val({x, x}) {}
+    [[nodiscard]] constexpr inline vec2(float x, float y) : val({x, y}) {}
     [[nodiscard]] constexpr inline vec2(const vec2&) = default;
     inline vec2& operator=(const vec2&) = default;
 
@@ -188,7 +189,8 @@ inline std::istream& operator>>(std::istream& stream, vec2& vec) {
 struct vec3 {
     std::array<float, 3> val;
 
-    [[nodiscard]] constexpr inline vec3(float x = 0, float y = 0, float z = 0) : val({x, y, z}) {}
+    [[nodiscard]] constexpr inline vec3(float x = 0) : val({x, x, x}) {}
+    [[nodiscard]] constexpr inline vec3(float x, float y, float z) : val({x, y, z}) {}
     [[nodiscard]] constexpr inline vec3(const vec3&) = default;
     inline vec3& operator=(const vec3&) = default;
     [[nodiscard]] constexpr inline vec3(vec2 p0, float p1) : vec3{p0.val[0], p0.val[1], p1} {}
@@ -521,7 +523,8 @@ inline std::istream& operator>>(std::istream& stream, vec3& vec) {
 struct vec4 {
     std::array<float, 4> val;
 
-    [[nodiscard]] constexpr inline vec4(float x = 0, float y = 0, float z = 0, float w = 0) : val({x, y, z, w}) {}
+    [[nodiscard]] constexpr inline vec4(float x = 0) : val({x, x, x, x}) {}
+    [[nodiscard]] constexpr inline vec4(float x, float y, float z, float w) : val({x, y, z, w}) {}
     [[nodiscard]] constexpr inline vec4(const vec4&) = default;
     inline vec4& operator=(const vec4&) = default;
     [[nodiscard]] constexpr inline vec4(vec2 p0, float p1, float p2) : vec4{p0.val[0], p0.val[1], p1, p2} {}
@@ -2078,7 +2081,8 @@ inline std::istream& operator>>(std::istream& stream, vec4& vec) {
 struct color3 {
     std::array<float, 3> val;
 
-    [[nodiscard]] constexpr inline color3(float r = 0, float g = 0, float b = 0) : val({r, g, b}) {}
+    [[nodiscard]] constexpr inline color3(float x = 0) : val({x, x, x}) {}
+    [[nodiscard]] constexpr inline color3(float r, float g, float b) : val({r, g, b}) {}
     [[nodiscard]] constexpr inline color3(const color3&) = default;
     inline color3& operator=(const color3&) = default;
 
@@ -2371,7 +2375,8 @@ inline std::istream& operator>>(std::istream& stream, color3& vec) {
 struct color4 {
     std::array<float, 4> val;
 
-    [[nodiscard]] constexpr inline color4(float r = 0, float g = 0, float b = 0, float a = 0) : val({r, g, b, a}) {}
+    [[nodiscard]] constexpr inline color4(float x = 0) : val({x, x, x, x}) {}
+    [[nodiscard]] constexpr inline color4(float r, float g, float b, float a) : val({r, g, b, a}) {}
     [[nodiscard]] constexpr inline color4(const color4&) = default;
     inline color4& operator=(const color4&) = default;
     [[nodiscard]] constexpr inline color4(color3 p0, float p1) : color4{p0.val[0], p0.val[1], p0.val[2], p1} {}
