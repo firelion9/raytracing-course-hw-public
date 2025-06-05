@@ -386,8 +386,15 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path,
             }
         };
 
-    for (int node_idx : scene_info["nodes"]) {
-        handle_node(node_idx, geometry::matrix4::id());
+    if (scene_info.is_null()) {
+        for (int node_idx = 0, node_cnt = scene_struct["nodes"].size();
+             node_idx < node_cnt; ++node_idx) {
+            handle_node(node_idx, geometry::matrix4::id());
+        }
+    } else {
+        for (int node_idx : scene_info["nodes"]) {
+            handle_node(node_idx, geometry::matrix4::id());
+        }
     }
 
     return res;
