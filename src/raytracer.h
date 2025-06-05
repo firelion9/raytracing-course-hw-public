@@ -204,7 +204,7 @@ struct VNDF_dist {
             2;
         float g1 = 1 / (1 + lambda);
         float dn = 1 / std::numbers::pi_v<float> / roughness / roughness /
-                   (v * geometry::vec3(roughness, roughness, 1)).len2();
+                   (n / geometry::vec3(roughness, roughness, 1)).len2();
         float dv = g1 * std::max(0.0f, geometry::dot(v, n)) * dn / v.z();
         return dv / 4 / geometry::dot(v, n);
     }
