@@ -113,7 +113,7 @@ update_intersection(intersection_res &res, const intersection_res &intersection,
 
 [[nodiscard]] constexpr static inline std::optional<float>
 intersect(const geometry::ray &ray, const geometry::aabb &box,
-          float min_dst = INFINITY) {
+          float min_dst = 0) {
 
     auto intrs1 = (box.vmin() - ray.start) / ray.dir;
     auto intrs2 = (box.vmax() - ray.start) / ray.dir;
@@ -121,11 +121,8 @@ intersect(const geometry::ray &ray, const geometry::aabb &box,
     auto t_min = max_component(min(intrs1, intrs2));
     auto t_max = min_component(max(intrs1, intrs2));
 
-    if (t_min <= t_max) {
-        if (t_min >= min_dst)
-            return t_min;
-        if (t_max >= min_dst)
-            return t_max;
+    if (t_min <= t_max && t_max >= min_dst) {
+        return std::max(t_min, min_dst);
     }
 
     return std::nullopt;
