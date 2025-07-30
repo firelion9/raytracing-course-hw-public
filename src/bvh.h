@@ -21,6 +21,11 @@ struct ray_intersection_info {
     float t = 0;
     const geometry::Object *obj;
     bool is_inside;
+    geometry::color3 color;
+    geometry::color3 emission;
+    float metallic = 1.0;
+    float roughness = 1.0;
+    float ior = 1.5;
 };
 
 using light_intersection_info =
@@ -77,24 +82,42 @@ to_intersection_info(const light_intersection_info &intr,
                      const geometry::ray &ray) {
     auto b = intr.first.x();
     auto c = intr.first.y();
-    auto a = 1 - b - c;
     auto t = intr.first.z();
     auto &obj = *intr.second;
     auto &tr = obj.shape;
+    geometry::vec2 uv = {b, c};
 
     auto pos = ray.at(t);
-    auto normal = obj.normal_at(pos);
+    auto normal = obj.base_normal();
     auto is_inside = geometry::dot(normal, ray.dir) > 0;
-    auto shading_normal =
-        geometry::norm(obj.attrs.normals[0] * a + obj.attrs.normals[1] * b +
-                       obj.attrs.normals[2] * c);
 
-    if (geometry::dot(normal, shading_normal) < 0) {
-        shading_normal = -shading_normal;
+    auto smooth_normal = geometry::norm(tr.interop(uv, obj.attrs.normals));
+    if (geometry::dot(normal, smooth_normal) < 0) {
+        smooth_normal = -smooth_normal;
     }
 
+    geometry::vec2 tex_coord = obj.tex_coord_at(uv);
+
+    auto tangent = geometry::norm(tr.interop(uv, obj.attrs.tangents));
+    auto bitangent = geometry::crs(smooth_normal, tangent);
+    auto normal_loc = obj.material.normal_at(tex_coord);
+    auto shading_normal =
+        geometry::norm(geometry::transform3(normal_loc, tangent, bitangent, smooth_normal));
+
+    auto metallic_roughness = obj.material.metallic_roughness_at(tex_coord);
+    auto color = obj.material.color_at(tex_coord);
+    auto emission = obj.material.emission_at(tex_coord);
+
     return {is_inside ? -normal : normal,
-            is_inside ? -shading_normal : shading_normal, t, &obj, is_inside};
+            is_inside ? -shading_normal : shading_normal,
+            t,
+            &obj,
+            is_inside,
+            color,
+            emission,
+            metallic_roughness.x(),
+            metallic_roughness.y(),
+            obj.material.ior};
 }
 
 constexpr static inline void

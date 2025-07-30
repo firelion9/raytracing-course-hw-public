@@ -1,3 +1,5 @@
+#define STB_IMAGE_IMPLEMENTATION
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -21,6 +23,7 @@ int main(int argc, char **argv) try {
     unsigned samples = std::strtol(argv[4], nullptr, 10);
 
     Scene scene = parse_gltf_scene(std::filesystem::path(argv[1]), static_cast<float>(width) / height);
+    scene.bg_color = {1, 1, 1};
     scene.camera.width = width;
     scene.camera.height = height;
     scene.samples = samples;

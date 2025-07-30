@@ -2,9 +2,9 @@
 
 ./build.sh || exit 1
 
-BASE_DIR=sample_data/gltf
+BASE_DIR=sample_data/gltf/sphere
 for name in $(ls $BASE_DIR/*.gltf); do
     echo "$name... "
-    time ./run.sh "$name" 800 800 100 "out/$name.ppm" &&  echo -e "\e[32mok\e[0m" || echo -e "\e[31mfail\e[0m"
+    time ./run.sh "$name" 400 400 1000 "out/$name.ppm" &&  echo -e "\e[32mok\e[0m" || echo -e "\e[31mfail\e[0m"
    
 done

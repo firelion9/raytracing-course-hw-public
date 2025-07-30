@@ -7,6 +7,9 @@
 #include <cstdint>
 #include <iostream>
 #include <variant>
+#include <vector>
+
+#include "stb_image.h"
 
 namespace geometry {
 #include "generated/vectors.generated.inline.h"
@@ -260,6 +263,10 @@ matrix4::transform(const vec3 &scale, const quaternion &rotation,
     return ((*this) * vec4(vec, 0)).xyz();
 }
 
+[[nodiscard]] constexpr inline vec3 transform3(const vec3 &local_coords, const vec3 &x, const vec3 &y, const vec3 &z) {
+    return local_coords.x() * x + local_coords.y() * y + local_coords.z() * z;
+}
+
 struct ray {
     vec3 start;
     vec3 dir;
@@ -376,7 +383,7 @@ struct triangle {
 
     [[nodiscard]] constexpr inline vec3 u() const { return c() - a(); }
 
-    [[nodiscard]] constexpr inline vec3 normal_at(const vec3 &pos) const {
+    [[nodiscard]] constexpr inline vec3 normal() const {
         return norm(crs(v(), u()));
     }
 
@@ -395,6 +402,11 @@ struct triangle {
         res.extend(c());
         return res;
     }
+
+    template<class T>
+    [[nodiscard]] constexpr inline T interop(vec2 uv, const std::array<T, 3> &vals) const {
+        return vals[0] * (1 - uv.x() - uv.y()) + vals[1] * uv.x() + vals[2] * uv.y();
+    }
 };
 
 using shape = triangle;
@@ -409,16 +421,113 @@ reflect(const shape_type &shape, const geometry::ray &ray, float t) {
     return {base, out_dir};
 }
 
+static constexpr inline float wrap_repeat(float x) {
+    return std::fmod(std::fmod(x, 1) + 1, 1);
+}
+
+static constexpr inline int mod_inc(int x, int mod) {
+    return x == mod - 1 ? 0 : x + 1;
+}
+
+struct Texture {
+    unsigned width = 1;
+    unsigned height = 1;
+    std::vector<geometry::color3> data{{1, 1, 1}};
+
+    Texture() {}
+
+    Texture(unsigned width, unsigned height, std::vector<geometry::color3> data)
+        : width(width), height(height), data(std::move(data)) {}
+
+    Texture &operator=(const Texture &) = default;
+    Texture(const Texture &) = default;
+
+    Texture &operator=(Texture &&) = default;
+    Texture(Texture &&) = default;
+
+    constexpr inline geometry::color3 sample(geometry::vec2 xy,
+                                             float gamma = 1.0f) const {
+        float tx = wrap_repeat(xy.x()) * width;
+        float ty = wrap_repeat(xy.y()) * height;
+        int px = tx;
+        int py = ty;
+        float dx = tx - px;
+        float dy = ty - py;
+
+        std::array<std::array<geometry::color3, 2>, 2> ps{
+            std::array<geometry::color3, 2>{
+                geometry::pow(data[px + py * width], gamma),
+                geometry::pow(data[px + mod_inc(py, height) * width], gamma)},
+            {geometry::pow(data[mod_inc(px, width) + py * width], gamma),
+             geometry::pow(
+                 data[mod_inc(px, width) + mod_inc(py, height) * width],
+                 gamma)},
+        };
+
+        return (1 - dx) * ((1 - dy) * ps[0][0] + dy * ps[0][1]) +
+               dx * ((1 - dy) * ps[1][0] + dy * ps[1][1]);
+    }
+
+    constexpr inline geometry::vec3 sample_normal(geometry::vec2 xy) const {
+        auto u01 = sample(xy);
+        auto res = u01 * 2 - 1;
+
+        return geometry::norm(geometry::vec3(res.r(), res.g(), res.b()));
+    }
+
+    static Texture load_img(const std::string &path) {
+        int width = -1, height = -1, channels = -1;
+        auto img = stbi_load(path.data(), &width, &height, &channels, 3);
+        if (!img) {
+            throw std::runtime_error("Failed to load image from " + path);
+        }
+        Texture res{static_cast<unsigned>(width), static_cast<unsigned>(height),
+                    std::vector<geometry::color3>(width * height)};
+        for (int off = 0, end = width * height; off < end; ++off) {
+            res.data[off] = {img[off * 3] / 255.0f, img[off * 3 + 1] / 255.0f,
+                             img[off * 3 + 2] / 255.0f};
+        }
+        stbi_image_free(img);
+        return res;
+    }
+};
+
+const Texture WHITE_TEXTURE;
+const Texture NORMAL_UP(1, 1, {{0.5f, 0.5f, 1}});
+
 struct material {
     color3 color = {1, 1, 1};
     color3 emission = {0, 0, 0};
     float roughness = 1.0;
     float metallic = 1.0;
     float ior = 1.5;
+    const Texture* color_tex = &WHITE_TEXTURE;
+    const Texture* emissive_tex = &WHITE_TEXTURE;
+    const Texture* metallic_roughness_tex = &WHITE_TEXTURE;
+    const Texture* normal_tex = &NORMAL_UP;
+
+    [[nodiscard]] constexpr inline color3 color_at(vec2 tex_coords) const {
+        return color * color_tex->sample(tex_coords, 2.2f);
+    }
+
+    [[nodiscard]] constexpr inline color3 emission_at(vec2 tex_coords) const {
+        return emission * emissive_tex->sample(tex_coords, 2.2f);
+    }
+
+    [[nodiscard]] constexpr inline vec2 metallic_roughness_at(vec2 tex_coords) const {
+        auto mr = metallic_roughness_tex->sample(tex_coords);
+        return vec2(metallic, roughness) * vec2(mr.r(), mr.g());
+    }
+
+    [[nodiscard]] constexpr inline vec3 normal_at(vec2 tex_coords) const {
+        return normal_tex->sample_normal(tex_coords);
+    }
 };
 
 struct object_attrs {
     std::array<vec3, 3> normals;
+    std::array<vec2, 3> tex_coords;
+    std::array<vec3, 3> tangents;
 };
 
 struct Object {
@@ -426,16 +535,12 @@ struct Object {
     geometry::object_attrs attrs;
     geometry::material material;
 
-    [[nodiscard]] constexpr inline vec3 normal_at(const vec3 &pos) const {
-        return shape.normal_at(pos);
+    [[nodiscard]] constexpr inline vec2 tex_coord_at(vec2 uv) const {
+        return shape.interop(uv, attrs.tex_coords);
     }
 
-    [[nodiscard]] constexpr inline const color3 &emission() const {
-        return material.emission;
-    }
-
-    [[nodiscard]] constexpr inline const color3 &color() const {
-        return material.color;
+    [[nodiscard]] constexpr inline vec3 base_normal() const {
+        return shape.normal();
     }
 
     [[nodiscard]] constexpr inline vec3 center() const {

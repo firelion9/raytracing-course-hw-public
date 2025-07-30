@@ -8,6 +8,7 @@
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <numbers>
 #include <optional>
 #include <ostream>
 #include <span>
@@ -71,6 +72,16 @@ struct Scene {
     unsigned samples = 1;
     Camera camera;
     std::vector<geometry::Object> objects;
+    std::vector<geometry::Texture> textures;
+    geometry::Texture bg = geometry::WHITE_TEXTURE;
+
+    [[nodiscard]] constexpr inline geometry::color3
+    bg_at(const geometry::vec3 &dir) const {
+        float x = 0.5 + 0.5 * std::atan2(dir.z(), dir.x()) /
+                            std::numbers::pi_v<float>;
+        float y = 0.5 - std::asin(dir.y()) / std::numbers::pi_v<float>;
+        return bg_color * bg.sample({x, y}, 2.2f);
+    }
 };
 
 template <class Json>
@@ -181,6 +192,13 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path,
         buf_in.read(reinterpret_cast<char *>(buf.data()), buf.size());
     }
 
+    for (auto &texture_info : scene_struct["textures"]) {
+        int img = texture_info["source"];
+        std::string uri = scene_struct["images"][img]["uri"];
+        res.textures.push_back(
+            geometry::Texture::load_img(gltf_path.parent_path().append(uri)));
+    }
+
     std::function<void(int, const geometry::matrix4 &)> handle_node =
         [&res, &scene_struct, &buffers, &handle_node,
          ar](int node_idx, const geometry::matrix4 &parent_transform) {
@@ -231,7 +249,7 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path,
                 for (auto &primitive : mesh["primitives"]) {
                     int material_idx = primitive["material"];
                     auto material = scene_struct["materials"][material_idx];
-                    geometry::color3 clr = geometry::color3(1, 1, 1);
+                    geometry::material mat;
                     geometry::color3 emission = geometry::color3(0, 0, 0);
                     if (material.contains("emissiveFactor")) {
                         emission = parse_color3(material["emissiveFactor"]);
@@ -242,7 +260,10 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path,
                             material
                                 ["/extensions/KHR_materials_emissive_strength/emissiveStrength"_json_pointer]);
                     }
-                    geometry::material mat;
+                    if (material.contains("emissiveTexture")) {
+                        mat.emissive_tex = &res.textures.at(
+                            material["emissiveTexture"]["index"]);
+                    }
                     mat.emission = emission;
                     if (material.contains("pbrMetallicRoughness")) {
                         auto &pbrMetallicRoughness =
@@ -255,16 +276,22 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path,
                             }
                             mat.color = parse_color3(color);
                         }
-                        if (!pbrMetallicRoughness.contains("metallicFactor") ||
-                            pbrMetallicRoughness["metallicFactor"] > 0) {
-                            float roughness =
-                                pbrMetallicRoughness.contains("roughnessFactor")
-                                    ? static_cast<float>(
-                                          pbrMetallicRoughness
-                                              ["roughnessFactor"])
-                                    : 1.0f;
-                            mat.roughness = roughness;
+                        if (pbrMetallicRoughness.contains("baseColorTexture")) {
+                            mat.color_tex = &res.textures.at(
+                                pbrMetallicRoughness["baseColorTexture"]
+                                                    ["index"]);
                         }
+                        if (pbrMetallicRoughness.contains(
+                                "metallicRoughnessTexture")) {
+                            mat.metallic_roughness_tex = &res.textures.at(
+                                pbrMetallicRoughness["metallicRoughnessTexture"]
+                                                    ["index"]);
+                        }
+                        mat.roughness =
+                            pbrMetallicRoughness.contains("roughnessFactor")
+                                ? static_cast<float>(
+                                      pbrMetallicRoughness["roughnessFactor"])
+                                : 1.0f;
                         mat.metallic =
                             pbrMetallicRoughness.contains("metallicFactor")
                                 ? static_cast<float>(
@@ -272,6 +299,10 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path,
                                 : 1.0f;
                     }
 
+                    if (material.contains("normalTexture")) {
+                        mat.normal_tex = &res.textures.at(
+                            material["normalTexture"]["index"]);
+                    }
                     int coord_accessor_idx =
                         primitive["attributes"]["POSITION"];
                     auto coords = interpret_accessor<const geometry::vec3>(
@@ -282,13 +313,40 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path,
                             ? std::make_optional(
                                   primitive["attributes"]["NORMAL"])
                             : std::nullopt;
-                    ;
+
                     auto normals =
                         normal_accessor_idx.has_value()
                             ? interpret_accessor<const geometry::vec3>(
                                   scene_struct, buffers,
                                   normal_accessor_idx.value())
                             : std::span<const geometry::vec3>();
+
+                    std::optional<int> tangent_accessor_idx =
+                        primitive.contains("/attributes/tangent"_json_pointer)
+                            ? std::make_optional(
+                                  primitive["attributes"]["tangent"])
+                            : std::nullopt;
+
+                    auto tangents =
+                        tangent_accessor_idx.has_value()
+                            ? interpret_accessor<const geometry::vec3>(
+                                  scene_struct, buffers,
+                                  tangent_accessor_idx.value())
+                            : std::span<const geometry::vec3>();
+
+                    std::optional<int> texcoord_accessor_idx =
+                        primitive.contains(
+                            "/attributes/TEXCOORD_0"_json_pointer)
+                            ? std::make_optional(
+                                  primitive["attributes"]["TEXCOORD_0"])
+                            : std::nullopt;
+
+                    auto texcoords =
+                        texcoord_accessor_idx.has_value()
+                            ? interpret_accessor<const geometry::vec2>(
+                                  scene_struct, buffers,
+                                  texcoord_accessor_idx.value())
+                            : std::span<const geometry::vec2>();
 
                     auto indices = load_indices(scene_struct, buffers,
                                                 primitive["indices"]);
@@ -320,28 +378,6 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path,
                                    ? static_cast<int>(primitive["mode"])
                                    : 4;
 
-                    auto push_obj =
-                        [&res, &mat,
-                         &clr](const geometry::vec3 p1, const geometry::vec3 p2,
-                               const geometry::vec3 p3,
-                               const std::optional<geometry::vec3> n1,
-                               const std::optional<geometry::vec3> n2,
-                               const std::optional<geometry::vec3> n3) {
-                            res.objects.emplace_back();
-                            auto &obj = res.objects.back();
-                            obj.material = mat;
-                            obj.shape = geometry::triangle{p1, p2, p3};
-                            if (n1.has_value() && n2.has_value() &&
-                                n3.has_value()) {
-                                obj.attrs.normals = {n1.value(), n2.value(),
-                                                     n3.value()};
-                            } else {
-                                auto normal = obj.shape.normal_at(
-                                    geometry::vec3{0, 0, 0});
-                                obj.attrs.normals = {normal, normal, normal};
-                            }
-                        };
-
                     auto get_normal = [&normals, &transform](int idx) {
                         return normals.empty()
                                    ? std::nullopt
@@ -349,31 +385,63 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path,
                                          transform.apply3(normals[idx])));
                     };
 
+                    auto get_texcoord = [&texcoords](int idx) {
+                        return texcoords.empty() ? geometry::vec2(0, 0)
+                                                 : texcoords[idx];
+                    };
+
+                    auto get_tangent = [&tangents](int idx) {
+                        return tangents.empty() ? geometry::vec3(1, 0, 0)
+                                                : tangents[idx];
+                    };
+
+                    auto push_obj = [&res, &mat, &transform, &coords,
+                                     &get_normal, &get_texcoord,
+                                     &get_tangent](int i1, int i2, int i3) {
+                        auto p1 = transform.apply(coords[i1]);
+                        auto p2 = transform.apply(coords[i2]);
+                        auto p3 = transform.apply(coords[i3]);
+                        auto n1 = get_normal(i1);
+                        auto n2 = get_normal(i2);
+                        auto n3 = get_normal(i3);
+
+                        res.objects.emplace_back();
+                        auto &obj = res.objects.back();
+                        obj.material = mat;
+                        obj.shape = geometry::triangle{p1, p2, p3};
+                        if (n1.has_value() && n2.has_value() &&
+                            n3.has_value()) {
+                            obj.attrs.normals = {n1.value(), n2.value(),
+                                                 n3.value()};
+                        } else {
+                            auto normal = obj.shape.normal();
+                            obj.attrs.normals = {normal, normal, normal};
+                        }
+
+                        obj.attrs.tex_coords = {
+                            get_texcoord(i1),
+                            get_texcoord(i2),
+                            get_texcoord(i3),
+                        };
+                        obj.attrs.tangents = {
+                            get_tangent(i1),
+                            get_tangent(i2),
+                            get_tangent(i3),
+                        };
+                    };
+
                     switch (mode) {
                     case 4:
                         for (int i = 0; i < cnt; i += 3) {
-                            auto p1 = transform.apply(coords[get_index(i)]);
-                            auto p2 = transform.apply(coords[get_index(i + 1)]);
-                            auto p3 = transform.apply(coords[get_index(i + 2)]);
-                            auto n1 = get_normal(get_index(i));
-                            auto n2 = get_normal(get_index(i + 1));
-                            auto n3 = get_normal(get_index(i + 2));
-
-                            push_obj(p1, p2, p3, n1, n2, n3);
+                            push_obj(get_index(i), get_index(i + 1),
+                                     get_index(i + 2));
                         }
                         break;
                     case 5:
                         for (int i = 2; i < cnt; ++i) {
                             int off = i & 1;
-                            auto p1 = transform.apply(coords[get_index(i - 2)]);
-                            auto p2 =
-                                transform.apply(coords[get_index(i - 1 + off)]);
-                            auto p3 =
-                                transform.apply(coords[get_index(i - off)]);
-                            auto n1 = get_normal(get_index(i - 2));
-                            auto n2 = get_normal(get_index(i - 1 + off));
-                            auto n3 = get_normal(get_index(i - off));
-                            push_obj(p1, p2, p3, n1, n2, n3);
+                            push_obj(get_index(i - 2), get_index(i - 1 + off),
+                                     get_index(i - off));
                         }
                         break;
                     }

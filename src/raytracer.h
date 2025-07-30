@@ -26,7 +26,7 @@ constexpr bool USE_MULTITHREADING = true;
 constexpr size_t SPAN_SIZE = 256;
 
 constexpr float EPS = 1e-4;
-constexpr float MIN_ROUGHNESS = 0.03f;
+constexpr float MIN_ROUGHNESS = 0.04f;
 
 // endregion
 
@@ -54,6 +54,11 @@ static inline std::ostream &operator<<(std::ostream &out,
 }
 
 static inline std::ostream &operator<<(std::ostream &out,
+                                       const geometry::color3 &v) {
+    return out << "(" << v.r() << ", " << v.g() << ", " << v.b() << ")";
+}
+
+static inline std::ostream &operator<<(std::ostream &out,
                                        const geometry::ray &v) {
     return out << v.start << "-" << v.dir << "->";
 }
@@ -73,13 +78,13 @@ using dist_t = std::variant<cosine_dist, light_dist, mix_dist, bvh_mix_dist>;
 intersect_ray_sphere(const geometry::ray &ray, float r) {
     intersection_res res;
 
-    float a = dot(ray.dir / r, ray.dir / r);
-    float hb = dot(ray.start / r, ray.dir / r);
-    float c = dot(ray.start / r, ray.start / r) - 1;
+    float a = geometry::dot(ray.dir / r, ray.dir / r);
+    float hb = geometry::dot(ray.start / r, ray.dir / r);
+    float c = geometry::dot(ray.start / r, ray.start / r) - 1;
     float hd2 = hb * hb - a * c;
     if (hd2 < 0)
         return {0, 0};
-    float hd = sqrt(hd2);
+    float hd = std::sqrt(hd2);
 
     float t1 = (-hb - hd) / a;
     float t2 = (-hb + hd) / a;
@@ -171,15 +176,16 @@ struct VNDF_dist {
         float t2 = r * sin(phi);
         float s = 0.5f * (1.0f + vh.z());
         t2 = (1.0f - s) * std::sqrt(1.0f - t1 * t1) + s * t2;
-        
+
         auto nh = t1 * T1 + t2 * T2 +
                   std::sqrt(std::max(0.0f, 1.0f - t1 * t1 - t2 * t2)) * vh;
-                  
+
         auto ne = geometry::norm(geometry::vec3(roughness * nh.x(),
                                                 roughness * nh.y(),
                                                 std::max<float>(0.0f, nh.z())));
-        auto res_n = nx * ne.x() + ny * ne.y() + normal * ne.z();
-        return geometry::reflect(res_n, in_dir);
+        auto res_n = geometry::norm(nx * ne.x() + ny * ne.y() + normal * ne.z());
+        auto res = geometry::reflect(res_n, in_dir);
+        return res;
     }
 
     [[nodiscard]] inline float pdf(const geometry::vec3 &in_dir,
@@ -191,11 +197,14 @@ struct VNDF_dist {
         auto v = -geometry::vec3(geometry::dot(nx, in_dir),
                                  geometry::dot(ny, in_dir),
                                  geometry::dot(normal, in_dir));
-                                 
+
+        if (std::abs(v.z()) < EPS) {
+            return 0.0f;
+        }
+
         auto nv = halfway(in_dir, dir);
-        auto n = geometry::vec3(geometry::dot(nx, nv),
-                                 geometry::dot(ny, nv),
-                                 geometry::dot(normal, nv));
+        auto n = geometry::vec3(geometry::dot(nx, nv), geometry::dot(ny, nv),
+                                geometry::dot(normal, nv));
         float lambda =
             (-1 +
              std::sqrt(1 +
@@ -212,9 +221,9 @@ struct VNDF_dist {
     [[nodiscard]] static constexpr inline geometry::vec3
     choose_local_x(const geometry::vec3 &n) {
         geometry::vec3 res{1, 1, 1};
-        if (std::abs(n.x()) > 0.5) {
+        if (std::abs(n.x()) > 0.5f) {
             res.x() -= geometry::dot(res, n) / n.x();
-        } else if (std::abs(n.y()) > 0.5) {
+        } else if (std::abs(n.y()) > 0.5f) {
             res.y() -= geometry::dot(res, n) / n.y();
         } else {
             res.z() -= geometry::dot(res, n) / n.z();
@@ -251,7 +260,7 @@ struct triangle_dist {
         if (intr.has_value()) {
             auto y = ray.at(intr->z());
             res += light_surface_projection_multiplier(
-                x, y, triangle.normal_at(y), dir);
+                x, y, triangle.normal(), dir);
         }
         return res / triangle.square();
     }
@@ -259,7 +268,7 @@ struct triangle_dist {
     [[nodiscard]] constexpr inline float pdf_at(const geometry::vec3 &x,
                                                 const geometry::vec3 &normal,
                                                 const geometry::vec3 &y) const {
-        return light_surface_projection_multiplier(x, y, triangle.normal_at(y),
+        return light_surface_projection_multiplier(x, y, triangle.normal(),
                                                    geometry::norm(y - x)) /
                triangle.square();
     }
@@ -281,15 +290,17 @@ specular_brdf(const float alpha, const geometry::vec3 &in_dir,
     auto d = pow2(alpha) * heaviside(geometry::dot(normal, h)) /
              std::numbers::pi_v<float> /
              pow2(pow2(geometry::dot(normal, h)) * (pow2(alpha) - 1) + 1);
-    auto v =
-        heaviside(geometry::dot(h, out_dir)) *
-        heaviside(geometry::dot(h, -in_dir)) /
-        (geometry::dot(normal, out_dir) +
+
+    auto div1 =
+        (std::abs(geometry::dot(normal, out_dir)) +
          std::sqrt(pow2(alpha) +
-                   (1 - pow2(alpha)) * pow2(geometry::dot(normal, out_dir)))) /
-        (geometry::dot(normal, -in_dir) +
+                   (1 - pow2(alpha)) * pow2(geometry::dot(normal, out_dir))));
+    auto div2 =
+        (std::abs(geometry::dot(normal, -in_dir)) +
          std::sqrt(pow2(alpha) +
                    (1 - pow2(alpha)) * pow2(geometry::dot(normal, -in_dir))));
+    auto v = heaviside(geometry::dot(h, out_dir)) *
+             heaviside(geometry::dot(h, -in_dir)) / div1 / div2;
     auto res = v * d;
     return {res, res, res};
 }
@@ -300,45 +311,44 @@ diffuse_brdf(const geometry::color3 &color) {
 }
 
 [[nodiscard]] constexpr inline geometry::color3
-fresnel_mix(float ior, const geometry::color3 base,
-            const geometry::color3 layer, float VdotH) {
+fresnel_mix(float ior, const geometry::color3 &base,
+            const geometry::color3 &layer, float VdotH) {
     auto f0 = pow2((1 - ior) / (1 + ior));
     auto fr = f0 + (1 - f0) * pow<5>(1 - std::abs(VdotH));
     return base * (1 - fr) + layer * fr;
 }
 
 [[nodiscard]] constexpr inline geometry::color3
-dielectric_brdf(const geometry::material &material,
-                const geometry::vec3 &in_dir, const geometry::vec3 &out_dir,
-                const geometry::vec3 &normal) {
+dielectric_brdf(const geometry::vec3 &in_dir, const geometry::vec3 &out_dir,
+                const ray_intersection_info &intersection_info) {
     return fresnel_mix(
-        material.ior, diffuse_brdf(material.color),
-        specular_brdf(pow2(std::max(material.roughness, MIN_ROUGHNESS)), in_dir,
-                      out_dir, normal),
+        intersection_info.ior, diffuse_brdf(intersection_info.color),
+        specular_brdf(pow2(std::max(intersection_info.roughness, MIN_ROUGHNESS)), in_dir,
+                      out_dir, intersection_info.shading_normal),
         geometry::dot(-in_dir, halfway(in_dir, out_dir)));
 }
 
 [[nodiscard]] constexpr inline geometry::color3
-metallic_brdf(const geometry::material &material, const geometry::vec3 &in_dir,
-              const geometry::vec3 &out_dir, const geometry::vec3 &normal) {
+metallic_brdf(const geometry::vec3 &in_dir,
+              const geometry::vec3 &out_dir, const ray_intersection_info &intersection_info) {
     return conductor_fresnel(
-        material.color,
-        specular_brdf(pow2(std::max(material.roughness, MIN_ROUGHNESS)), in_dir,
-                      out_dir, normal),
+        intersection_info.color,
+        specular_brdf(pow2(std::max(intersection_info.roughness, MIN_ROUGHNESS)), in_dir,
+                      out_dir, intersection_info.shading_normal),
         geometry::dot(-in_dir, halfway(in_dir, out_dir)));
 }
 
 [[nodiscard]] constexpr inline geometry::color3
-pbr_brdf(const geometry::material &material, const geometry::vec3 &in_dir,
-         const geometry::vec3 &out_dir, const geometry::vec3 &normal) {
+pbr_brdf(const geometry::vec3 &in_dir,
+         const geometry::vec3 &out_dir, const ray_intersection_info &intersection_info) {
     geometry::color3 res = 0;
-    if (material.metallic < 1) {
-        res += (1 - material.metallic) *
-               dielectric_brdf(material, in_dir, out_dir, normal);
+    if (intersection_info.metallic < 1) {
+        res += (1 - intersection_info.metallic) *
+               dielectric_brdf(in_dir, out_dir, intersection_info);
     }
-    if (material.metallic > 0) {
-        res += material.metallic *
-               metallic_brdf(material, in_dir, out_dir, normal);
+    if (intersection_info.metallic > 0) {
+        res += intersection_info.metallic *
+               metallic_brdf(in_dir, out_dir, intersection_info);
     }
     return res;
 }
@@ -444,7 +454,7 @@ struct RaytracerStaticContext {
                        [](const geometry::Object &obj) { return true; });
         light_bvh = BVH::build(
             std::span(scene.objects), [](const geometry::Object &obj) {
-                return obj.emission() != geometry::color3{0, 0, 0};
+                return obj.material.emission != geometry::color3{0, 0, 0};
             });
 
         dist_t diffuse_dist = cosine_dist();
@@ -560,28 +570,29 @@ shade(RaytracerThreadContext &context, const geometry::ray &ray,
     auto &material = intersection_info.obj->material;
     auto VNDF_dst = VNDF_dist{std::max(material.roughness, MIN_ROUGHNESS)};
     auto VNDF_factor = 1 / 3.0f;
-    auto dir =
-        context.coin(VNDF_factor)
-            ? VNDF_dst.sample(context.rand_gen, ray.dir,
-                              intersection_info.shading_normal)
-            : context.dir_gen.sample(pos, intersection_info.normal);
-    auto p =
-        VNDF_factor * VNDF_dst.pdf(ray.dir, intersection_info.shading_normal, dir) +
-        (1 - VNDF_factor) *
-            context.dir_gen.pdf(pos, intersection_info.normal, dir);
+    auto dir = context.coin(VNDF_factor)
+                   ? VNDF_dst.sample(context.rand_gen, ray.dir,
+                                     intersection_info.shading_normal)
+                   : context.dir_gen.sample(pos, intersection_info.normal);
+    auto VNDF_p = VNDF_dst.pdf(ray.dir, intersection_info.shading_normal, dir);
+    auto MIS_p = context.dir_gen.pdf(pos, intersection_info.normal, dir);
+    auto p = VNDF_factor * VNDF_p + (1 - VNDF_factor) * MIS_p;
+
     if (p < EPS) {
-        return material.emission;
+        return intersection_info.emission;
     }
 
     auto scl =
-        pbr_brdf(material, ray.dir, dir, intersection_info.shading_normal) / p *
+        pbr_brdf(ray.dir, dir, intersection_info) / p *
         std::max(0.0f, geometry::dot(dir, intersection_info.shading_normal));
 
     if (scl.len2() == 0.0f) {
-        return material.emission;
+        return intersection_info.emission;
     }
 
-    return material.emission + trace_ray(context, {pos, dir}, max_depth) * scl;
+    auto clr = trace_ray(context, {pos, dir}, max_depth) * scl;
+
+    return intersection_info.emission + clr;
 }
 
 [[nodiscard]] constexpr static inline geometry::color3
@@ -595,7 +606,7 @@ trace_ray(RaytracerThreadContext &context, const geometry::ray &ray,
 
     return trace_res.has_value()
                ? shade(context, ray, trace_res.value(), max_depth - 1)
-               : context.scene().bg_color;
+               : context.scene().bg_at(ray.dir);
 }
 
 [[nodiscard]] static inline geometry::color3
