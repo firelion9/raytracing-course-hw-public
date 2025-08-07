@@ -77,7 +77,7 @@ intersect(const geometry::ray &ray, const geometry::Object &obj,
     return std::nullopt;
 }
 
-[[nodiscard]] constexpr static inline ray_intersection_info
+[[nodiscard]] static inline ray_intersection_info
 to_intersection_info(const light_intersection_info &intr,
                      const geometry::ray &ray) {
     auto b = intr.first.x();

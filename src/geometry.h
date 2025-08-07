@@ -9,6 +9,7 @@
 #include <variant>
 #include <vector>
 
+#include "config.h"
 #include "stb_image.h"
 
 namespace geometry {
@@ -263,7 +264,92 @@ matrix4::transform(const vec3 &scale, const quaternion &rotation,
     return ((*this) * vec4(vec, 0)).xyz();
 }
 
-[[nodiscard]] constexpr inline vec3 transform3(const vec3 &local_coords, const vec3 &x, const vec3 &y, const vec3 &z) {
+struct matrix3 {
+    std::array<vec3, 3> val{};
+
+    [[nodiscard]] constexpr inline matrix3() = default;
+    [[nodiscard]] constexpr inline matrix3(const matrix3&) = default;
+
+    [[nodiscard]] constexpr inline matrix3(const matrix4 &mat) 
+    : val({
+            mat.val[0].xyz(),
+            mat.val[1].xyz(),
+            mat.val[2].xyz(),
+        }) {   
+    }
+
+    [[nodiscard]] constexpr inline vec3 apply(const vec3 &vec) const;
+
+    [[nodiscard]] constexpr inline matrix3 rs_fast_inv_t() const {
+        matrix3 res;
+        float d2 = fast_det2();
+        res.val[0] = vec3{maj<0, 0>(), maj<0, 1>(), maj<0, 2>()} / d2;
+        res.val[1] = vec3{maj<1, 0>(), maj<1, 1>(), maj<1, 2>()} / d2;
+        res.val[2] = vec3{maj<2, 0>(), maj<2, 1>(), maj<2, 2>()} / d2;
+        
+        return res;
+    }
+
+    [[nodiscard]] constexpr inline float fast_det2() const {
+        return val[0].len2() * val[1].len2() * val[2].len2();
+    }
+
+    template<int r, int c> [[nodiscard]] constexpr inline float maj() const {
+        static_assert(0 <= r && r < 3 && 0 <= c && c < 3, "illegal r or c");
+        
+        constexpr int r1 = (r + 1) % 3;
+        constexpr int r2 = (r + 2) % 3;
+        constexpr int c1 = (c + 1) % 3;
+        constexpr int c2 = (c + 2) % 3;
+
+        // Parity sign is applied as side effect of r1/r2 and c1/c2 ordering
+        return (val[r1].val[c1] * val[r2].val[c2] - val[r1].val[c2] * val[r2].val[c1]);
+    }
+};
+
+[[nodiscard]] constexpr inline matrix3 operator*(const matrix3 &a,
+                                                 const matrix3 &b) {
+    matrix3 res;
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            for (int k = 0; k < 3; ++k) {
+                res.val[i].val[k] += a.val[i].val[j] * b.val[j].val[k];
+            }
+        }
+    }
+
+    return res;
+}
+
+[[nodiscard]] constexpr inline vec3 operator*(const matrix3 &mat,
+                                              const vec3 &vec) {
+    vec3 res;
+    for (int i = 0; i < 3; ++i) {
+        res.val[i] = dot(mat.val[i], vec);
+    }
+
+    return res;
+}
+
+[[nodiscard]] constexpr inline vec3 operator*(const vec3 &vec,
+                                              const matrix3 &mat) {
+    vec3 res{0, 0, 0};
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            res.val[j] += vec.val[i] * mat.val[i].val[j];
+        }
+    }
+
+    return res;
+}
+
+[[nodiscard]] constexpr inline vec3 matrix3::apply(const vec3 &vec) const {
+    return ((*this) * vec);
+}
+
+[[nodiscard]] constexpr inline vec3 transform3(const vec3 &local_coords,
+                                               const vec3 &x, const vec3 &y,
+                                               const vec3 &z) {
     return local_coords.x() * x + local_coords.y() * y + local_coords.z() * z;
 }
 
@@ -403,9 +489,11 @@ struct triangle {
         return res;
     }
 
-    template<class T>
-    [[nodiscard]] constexpr inline T interop(vec2 uv, const std::array<T, 3> &vals) const {
-        return vals[0] * (1 - uv.x() - uv.y()) + vals[1] * uv.x() + vals[2] * uv.y();
+    template <class T>
+    [[nodiscard]] constexpr inline T
+    interop(vec2 uv, const std::array<T, 3> &vals) const {
+        return vals[0] * (1 - uv.x() - uv.y()) + vals[1] * uv.x() +
+               vals[2] * uv.y();
     }
 };
 
@@ -445,30 +533,39 @@ struct Texture {
     Texture &operator=(Texture &&) = default;
     Texture(Texture &&) = default;
 
-    constexpr inline geometry::color3 sample(geometry::vec2 xy,
-                                             float gamma = 1.0f) const {
-        float tx = wrap_repeat(xy.x()) * width;
-        float ty = wrap_repeat(xy.y()) * height;
-        int px = tx;
-        int py = ty;
-        float dx = tx - px;
-        float dy = ty - py;
+    inline geometry::color3 sample(geometry::vec2 xy,
+                                   float gamma = 1.0f) const {
+        if constexpr (USE_TEXTURES) {
+            if (data.size() == 1) {
+                return data[0];
+            }
 
-        std::array<std::array<geometry::color3, 2>, 2> ps{
-            std::array<geometry::color3, 2>{
-                geometry::pow(data[px + py * width], gamma),
-                geometry::pow(data[px + mod_inc(py, height) * width], gamma)},
-            {geometry::pow(data[mod_inc(px, width) + py * width], gamma),
-             geometry::pow(
-                 data[mod_inc(px, width) + mod_inc(py, height) * width],
-                 gamma)},
-        };
+            float tx = wrap_repeat(xy.x()) * width;
+            float ty = wrap_repeat(xy.y()) * height;
+            int px = tx;
+            int py = ty;
+            float dx = tx - px;
+            float dy = ty - py;
 
-        return (1 - dx) * ((1 - dy) * ps[0][0] + dy * ps[0][1]) +
-               dx * ((1 - dy) * ps[1][0] + dy * ps[1][1]);
+            std::array<std::array<geometry::color3, 2>, 2> ps{
+                std::array<geometry::color3, 2>{
+                    geometry::pow(data[px + py * width], gamma),
+                    geometry::pow(data[px + mod_inc(py, height) * width],
+                                  gamma)},
+                {geometry::pow(data[mod_inc(px, width) + py * width], gamma),
+                 geometry::pow(
+                     data[mod_inc(px, width) + mod_inc(py, height) * width],
+                     gamma)},
+            };
+
+            return (1 - dx) * ((1 - dy) * ps[0][0] + dy * ps[0][1]) +
+                   dx * ((1 - dy) * ps[1][0] + dy * ps[1][1]);
+        } else {
+            return data[0];
+        }
     }
 
-    constexpr inline geometry::vec3 sample_normal(geometry::vec2 xy) const {
+    inline geometry::vec3 sample_normal(geometry::vec2 xy) const {
         auto u01 = sample(xy);
         auto res = u01 * 2 - 1;
 
@@ -501,25 +598,25 @@ struct material {
     float roughness = 1.0;
     float metallic = 1.0;
     float ior = 1.5;
-    const Texture* color_tex = &WHITE_TEXTURE;
-    const Texture* emissive_tex = &WHITE_TEXTURE;
-    const Texture* metallic_roughness_tex = &WHITE_TEXTURE;
-    const Texture* normal_tex = &NORMAL_UP;
+    const Texture *color_tex = &WHITE_TEXTURE;
+    const Texture *emissive_tex = &WHITE_TEXTURE;
+    const Texture *metallic_roughness_tex = &WHITE_TEXTURE;
+    const Texture *normal_tex = &NORMAL_UP;
 
-    [[nodiscard]] constexpr inline color3 color_at(vec2 tex_coords) const {
+    [[nodiscard]] inline color3 color_at(vec2 tex_coords) const {
         return color * color_tex->sample(tex_coords, 2.2f);
     }
 
-    [[nodiscard]] constexpr inline color3 emission_at(vec2 tex_coords) const {
+    [[nodiscard]] inline color3 emission_at(vec2 tex_coords) const {
         return emission * emissive_tex->sample(tex_coords, 2.2f);
     }
 
-    [[nodiscard]] constexpr inline vec2 metallic_roughness_at(vec2 tex_coords) const {
+    [[nodiscard]] inline vec2 metallic_roughness_at(vec2 tex_coords) const {
         auto mr = metallic_roughness_tex->sample(tex_coords);
         return vec2(metallic, roughness) * vec2(mr.r(), mr.g());
     }
 
-    [[nodiscard]] constexpr inline vec3 normal_at(vec2 tex_coords) const {
+    [[nodiscard]] inline vec3 normal_at(vec2 tex_coords) const {
         return normal_tex->sample_normal(tex_coords);
     }
 };

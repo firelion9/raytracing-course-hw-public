@@ -6,3 +6,4 @@ __pycache__/
 /out/
 /.cache/
 /build-rd/
+env.hdr

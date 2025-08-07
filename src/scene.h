@@ -41,6 +41,11 @@ static inline void ensure_variant(std::variant<VS...> &variant,
 
 static inline void println(std::ostream &out) { out << "\n"; }
 
+static inline std::ostream &operator<<(std::ostream &out,
+                                       const geometry::vec3 &v) {
+    return out << "(" << v.x() << ", " << v.y() << ", " << v.z() << ")";
+}
+
 template <class Arg, class... Args>
 static inline void println(std::ostream &out, Arg &&arg, Args &&...rest) {
     out << arg;
@@ -75,7 +80,7 @@ struct Scene {
     std::vector<geometry::Texture> textures;
     geometry::Texture bg = geometry::WHITE_TEXTURE;
 
-    [[nodiscard]] constexpr inline geometry::color3
+    [[nodiscard]] inline geometry::color3
     bg_at(const geometry::vec3 &dir) const {
         float x = 0.5 + 0.5 * std::atan2(dir.z(), dir.x()) /
                             std::numbers::pi_v<float>;
@@ -219,6 +224,8 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path,
             auto transform =
                 parent_transform * trs *
                 geometry::matrix4::transform(scale, rotation, translation);
+            auto normal_transform =
+                geometry::matrix3(transform).rs_fast_inv_t();
 
             if (node.contains("camera")) {
                 int camera_idx = node["camera"];
@@ -378,11 +385,11 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path,
                                    ? static_cast<int>(primitive["mode"])
                                    : 4;
 
-                    auto get_normal = [&normals, &transform](int idx) {
+                    auto get_normal = [&normals, &normal_transform](int idx) {
                         return normals.empty()
                                    ? std::nullopt
                                    : std::make_optional(geometry::norm(
-                                         transform.apply3(normals[idx])));
+                                         normal_transform.apply(normals[idx])));
                     };
 
                     auto get_texcoord = [&texcoords](int idx) {

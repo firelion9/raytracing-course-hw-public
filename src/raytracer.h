@@ -2,6 +2,7 @@
 #define RAYTRACER_H
 
 #include "bvh.h"
+#include "config.h"
 #include "geometry.h"
 #include "image.h"
 #include "scene.h"
@@ -20,16 +21,6 @@
 #include <variant>
 #include <vector>
 
-// region config
-
-constexpr bool USE_MULTITHREADING = true;
-constexpr size_t SPAN_SIZE = 256;
-
-constexpr float EPS = 1e-4;
-constexpr float MIN_ROUGHNESS = 0.04f;
-
-// endregion
-
 // region utilities
 
 template <class Num> [[nodiscard]] static constexpr inline Num pow2(Num x) {
@@ -46,11 +37,6 @@ template <size_t p, class Num>
     } else {
         return x * pow<p / 2>(x * x);
     }
-}
-
-static inline std::ostream &operator<<(std::ostream &out,
-                                       const geometry::vec3 &v) {
-    return out << "(" << v.x() << ", " << v.y() << ", " << v.z() << ")";
 }
 
 static inline std::ostream &operator<<(std::ostream &out,
@@ -149,6 +135,7 @@ halfway(const geometry::vec3 &in_dir, const geometry::vec3 &out_dir) {
     return geometry::norm(out_dir - in_dir);
 }
 
+#define _ << " " <<
 struct VNDF_dist {
     float roughness = 1.0;
 
@@ -183,7 +170,8 @@ struct VNDF_dist {
         auto ne = geometry::norm(geometry::vec3(roughness * nh.x(),
                                                 roughness * nh.y(),
                                                 std::max<float>(0.0f, nh.z())));
-        auto res_n = geometry::norm(nx * ne.x() + ny * ne.y() + normal * ne.z());
+        auto res_n =
+            geometry::norm(nx * ne.x() + ny * ne.y() + normal * ne.z());
         auto res = geometry::reflect(res_n, in_dir);
         return res;
     }
@@ -259,8 +247,8 @@ struct triangle_dist {
         float res = 0;
         if (intr.has_value()) {
             auto y = ray.at(intr->z());
-            res += light_surface_projection_multiplier(
-                x, y, triangle.normal(), dir);
+            res += light_surface_projection_multiplier(x, y, triangle.normal(),
+                                                       dir);
         }
         return res / triangle.square();
     }
@@ -323,24 +311,26 @@ dielectric_brdf(const geometry::vec3 &in_dir, const geometry::vec3 &out_dir,
                 const ray_intersection_info &intersection_info) {
     return fresnel_mix(
         intersection_info.ior, diffuse_brdf(intersection_info.color),
-        specular_brdf(pow2(std::max(intersection_info.roughness, MIN_ROUGHNESS)), in_dir,
-                      out_dir, intersection_info.shading_normal),
+        specular_brdf(
+            pow2(std::max(intersection_info.roughness, MIN_ROUGHNESS)), in_dir,
+            out_dir, intersection_info.shading_normal),
         geometry::dot(-in_dir, halfway(in_dir, out_dir)));
 }
 
 [[nodiscard]] constexpr inline geometry::color3
-metallic_brdf(const geometry::vec3 &in_dir,
-              const geometry::vec3 &out_dir, const ray_intersection_info &intersection_info) {
+metallic_brdf(const geometry::vec3 &in_dir, const geometry::vec3 &out_dir,
+              const ray_intersection_info &intersection_info) {
     return conductor_fresnel(
         intersection_info.color,
-        specular_brdf(pow2(std::max(intersection_info.roughness, MIN_ROUGHNESS)), in_dir,
-                      out_dir, intersection_info.shading_normal),
+        specular_brdf(
+            pow2(std::max(intersection_info.roughness, MIN_ROUGHNESS)), in_dir,
+            out_dir, intersection_info.shading_normal),
         geometry::dot(-in_dir, halfway(in_dir, out_dir)));
 }
 
 [[nodiscard]] constexpr inline geometry::color3
-pbr_brdf(const geometry::vec3 &in_dir,
-         const geometry::vec3 &out_dir, const ray_intersection_info &intersection_info) {
+pbr_brdf(const geometry::vec3 &in_dir, const geometry::vec3 &out_dir,
+         const ray_intersection_info &intersection_info) {
     geometry::color3 res = 0;
     if (intersection_info.metallic < 1) {
         res += (1 - intersection_info.metallic) *
@@ -574,6 +564,9 @@ shade(RaytracerThreadContext &context, const geometry::ray &ray,
                    ? VNDF_dst.sample(context.rand_gen, ray.dir,
                                      intersection_info.shading_normal)
                    : context.dir_gen.sample(pos, intersection_info.normal);
+    if (std::isnan(dir.x()) || std::isnan(dir.y()) || std::isnan(dir.z())) {
+        return intersection_info.emission;
+    }
     auto VNDF_p = VNDF_dst.pdf(ray.dir, intersection_info.shading_normal, dir);
     auto MIS_p = context.dir_gen.pdf(pos, intersection_info.normal, dir);
     auto p = VNDF_factor * VNDF_p + (1 - VNDF_factor) * MIS_p;
