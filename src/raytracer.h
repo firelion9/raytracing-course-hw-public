@@ -133,7 +133,7 @@ halfway(const geometry::vec3 &in_dir, const geometry::vec3 &out_dir) {
     return geometry::norm(out_dir - in_dir);
 }
 
-#define _ << " " <<
+/** Implementation reference: https://jcgt.org/published/0007/04/01/paper.pdf */
 struct VNDF_dist {
     float roughness = 1.0;
 
@@ -145,9 +145,7 @@ struct VNDF_dist {
         auto nx = choose_local_x(normal);
         auto ny = geometry::crs(normal, nx);
 
-        auto v = -geometry::vec3(geometry::dot(nx, in_dir),
-                                 geometry::dot(ny, in_dir),
-                                 geometry::dot(normal, in_dir));
+        auto v = -geometry::norm(geometry::matrix3(nx, ny, normal) * in_dir);
 
         auto vh = geometry::norm(geometry::vec3(roughness, roughness, 1) * v);
         float lensq = vh.xy().len2();
@@ -160,16 +158,16 @@ struct VNDF_dist {
         float t1 = r * cos(phi);
         float t2 = r * sin(phi);
         float s = 0.5f * (1.0f + vh.z());
-        t2 = (1.0f - s) * std::sqrt(1.0f - t1 * t1) + s * t2;
+        t2 = (1.0f - s) * std::sqrt(1.0f - pow2(t1)) + s * t2;
 
-        auto nh = t1 * T1 + t2 * T2 +
-                  std::sqrt(std::max(0.0f, 1.0f - t1 * t1 - t2 * t2)) * vh;
+        auto nh = geometry::transform3(
+            {t1, t2, std::sqrt(std::max(0.0f, 1.0f - pow2(t1) - pow2(t2)))}, T1,
+            T2, vh);
 
         auto ne = geometry::norm(geometry::vec3(roughness * nh.x(),
                                                 roughness * nh.y(),
                                                 std::max<float>(0.0f, nh.z())));
-        auto res_n =
-            geometry::norm(nx * ne.x() + ny * ne.y() + normal * ne.z());
+        auto res_n = geometry::norm(geometry::transform3(ne, nx, ny, normal));
         auto res = geometry::reflect(res_n, in_dir);
         return res;
     }
@@ -184,13 +182,15 @@ struct VNDF_dist {
                                  geometry::dot(ny, in_dir),
                                  geometry::dot(normal, in_dir));
 
-        if (std::abs(v.z()) < EPS) {
-            return 0.0f;
-        }
-
         auto nv = halfway(in_dir, dir);
         auto n = geometry::vec3(geometry::dot(nx, nv), geometry::dot(ny, nv),
                                 geometry::dot(normal, nv));
+
+        auto vdn = geometry::dot(v, n);
+        if (vdn <= 0) {
+            return 0;
+        }
+
         float lambda =
             (-1 +
              std::sqrt(1 +
@@ -200,8 +200,9 @@ struct VNDF_dist {
         float g1 = 1 / (1 + lambda);
         float dn = 1 / std::numbers::pi_v<float> / roughness / roughness /
                    pow2((n / geometry::vec3(roughness, roughness, 1)).len2());
-        float dv = g1 * std::max(0.0f, geometry::dot(v, n)) * dn / v.z();
-        return dv / 4 / geometry::dot(v, n);
+        float dv = g1 * vdn * dn / std::max(EPS, v.z());
+        float res = dv / 4 / vdn;
+        return res;
     }
 
     [[nodiscard]] static constexpr inline geometry::vec3
@@ -308,7 +309,7 @@ fresnel_mix(float ior, const geometry::color3 &base,
 dielectric_brdf(const geometry::vec3 &in_dir, const geometry::vec3 &out_dir,
                 const ray_intersection_info &intersection_info) {
     return fresnel_mix(
-        intersection_info.ior, diffuse_brdf(intersection_info.color),
+        intersection_info.ior, diffuse_brdf(intersection_info.color.rgb()),
         specular_brdf(
             pow2(std::max(intersection_info.roughness, MIN_ROUGHNESS)), in_dir,
             out_dir, intersection_info.shading_normal),
@@ -319,7 +320,7 @@ dielectric_brdf(const geometry::vec3 &in_dir, const geometry::vec3 &out_dir,
 metallic_brdf(const geometry::vec3 &in_dir, const geometry::vec3 &out_dir,
               const ray_intersection_info &intersection_info) {
     return conductor_fresnel(
-        intersection_info.color,
+        intersection_info.color.rgb(),
         specular_brdf(
             pow2(std::max(intersection_info.roughness, MIN_ROUGHNESS)), in_dir,
             out_dir, intersection_info.shading_normal),
@@ -555,8 +556,12 @@ cast_ray(const RaytracerThreadContext &context, const geometry::ray &ray,
 shade(RaytracerThreadContext &context, const geometry::ray &ray,
       const ray_intersection_info &intersection_info, unsigned max_depth) {
     auto pos = ray.at(intersection_info.t);
+    if (!context.coin(intersection_info.color.a())) {
+        return trace_ray(context, {pos, ray.dir}, max_depth);
+    }
     auto &material = intersection_info.obj->material;
-    auto VNDF_dst = VNDF_dist{std::max(material.roughness, MIN_ROUGHNESS)};
+    auto VNDF_dst =
+        VNDF_dist{pow2(std::max(intersection_info.roughness, MIN_ROUGHNESS))};
     auto dir = context.coin(VNDF_factor)
                    ? VNDF_dst.sample(context.rand_gen, ray.dir,
                                      intersection_info.shading_normal)

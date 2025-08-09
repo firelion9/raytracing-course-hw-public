@@ -21,7 +21,7 @@ struct ray_intersection_info {
     float t = 0;
     const geometry::Object *obj;
     bool is_inside;
-    geometry::color3 color;
+    geometry::color4 color;
     geometry::color3 emission;
     float metallic = 1.0;
     float roughness = 1.0;

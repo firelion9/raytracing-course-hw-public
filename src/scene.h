@@ -85,7 +85,7 @@ struct Scene {
         float x = 0.5 + 0.5 * std::atan2(dir.z(), dir.x()) /
                             std::numbers::pi_v<float>;
         float y = 0.5 - std::asin(dir.y()) / std::numbers::pi_v<float>;
-        return bg_color * bg.sample({x, y}, 2.2f);
+        return bg_color * bg.sample({x, y}, 2.2f).rgb();
     }
 };
 
@@ -109,6 +109,10 @@ template <class Json> static geometry::matrix4 parse_mat4(const Json &src) {
 
 template <class Json> static geometry::color3 parse_color3(const Json &src) {
     return geometry::color3(src[0], src[1], src[2]);
+}
+
+template <class Json> static geometry::color4 parse_color4(const Json &src) {
+    return geometry::color4(src[0], src[1], src[2], src[3]);
 }
 
 template <class T, class Json>
@@ -281,7 +285,7 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path,
                             if (color[3] < 1) {
                                 mat.ior = 1.5;
                             }
-                            mat.color = parse_color3(color);
+                            mat.color = parse_color4(color);
                         }
                         if (pbrMetallicRoughness.contains("baseColorTexture")) {
                             mat.color_tex = &res.textures.at(
@@ -471,7 +475,7 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path,
             handle_node(node_idx, geometry::matrix4::id());
         }
     }
-    
+
     if (ADD_LIGHT_TRIANGLE) {
         res.objects.emplace_back();
         geometry::Object &light_source = res.objects.back();

@@ -284,16 +284,6 @@ struct matrix3 {
 
     [[nodiscard]] constexpr inline vec3 apply(const vec3 &vec) const;
 
-    [[nodiscard]] constexpr inline matrix3 rs_fast_inv_t() const {
-        matrix3 res;
-        float d2 = fast_det2();
-        res.val[0] = vec3{maj<0, 0>(), maj<0, 1>(), maj<0, 2>()} / d2;
-        res.val[1] = vec3{maj<1, 0>(), maj<1, 1>(), maj<1, 2>()} / d2;
-        res.val[2] = vec3{maj<2, 0>(), maj<2, 1>(), maj<2, 2>()} / d2;
-        
-        return res;
-    }
-
     [[nodiscard]] constexpr inline float fast_det2() const {
         return val[0].len2() * val[1].len2() * val[2].len2();
     }
@@ -309,6 +299,17 @@ struct matrix3 {
         // Parity sign is applied as side effect of r1/r2 and c1/c2 ordering
         return (val[r1].val[c1] * val[r2].val[c2] - val[r1].val[c2] * val[r2].val[c1]);
     }
+    
+    [[nodiscard]] constexpr inline matrix3 rs_fast_inv_t() const {
+        matrix3 res;
+        float d2 = fast_det2();
+        res.val[0] = vec3{maj<0, 0>(), maj<0, 1>(), maj<0, 2>()} / d2;
+        res.val[1] = vec3{maj<1, 0>(), maj<1, 1>(), maj<1, 2>()} / d2;
+        res.val[2] = vec3{maj<2, 0>(), maj<2, 1>(), maj<2, 2>()} / d2;
+        
+        return res;
+    }
+
 };
 
 [[nodiscard]] constexpr inline matrix3 operator*(const matrix3 &a,
@@ -521,14 +522,18 @@ static constexpr inline int mod_inc(int x, int mod) {
     return x == mod - 1 ? 0 : x + 1;
 }
 
+[[nodiscard]] constexpr inline color4 rgba_apply_gamma(const color4& a, float gamma) {
+    return {std::pow(a.r(), gamma), std::pow(a.g(), gamma), std::pow(a.b(), gamma), a.a()};
+}
+
 struct Texture {
     unsigned width = 1;
     unsigned height = 1;
-    std::vector<geometry::color3> data{{1, 1, 1}};
+    std::vector<geometry::color4> data{{1, 1, 1, 1}};
 
     Texture() {}
 
-    Texture(unsigned width, unsigned height, std::vector<geometry::color3> data)
+    Texture(unsigned width, unsigned height, std::vector<geometry::color4> data)
         : width(width), height(height), data(std::move(data)) {}
 
     Texture &operator=(const Texture &) = default;
@@ -537,7 +542,7 @@ struct Texture {
     Texture &operator=(Texture &&) = default;
     Texture(Texture &&) = default;
 
-    inline geometry::color3 sample(geometry::vec2 xy,
+    inline geometry::color4 sample(geometry::vec2 xy,
                                    float gamma = 1.0f) const {
         if constexpr (USE_TEXTURES) {
             if (data.size() == 1) {
@@ -551,13 +556,13 @@ struct Texture {
             float dx = tx - px;
             float dy = ty - py;
 
-            std::array<std::array<geometry::color3, 2>, 2> ps{
-                std::array<geometry::color3, 2>{
-                    geometry::pow(data[px + py * width], gamma),
-                    geometry::pow(data[px + mod_inc(py, height) * width],
+            std::array<std::array<geometry::color4, 2>, 2> ps{
+                std::array<geometry::color4, 2>{
+                    rgba_apply_gamma(data[px + py * width], gamma),
+                    rgba_apply_gamma(data[px + mod_inc(py, height) * width],
                                   gamma)},
-                {geometry::pow(data[mod_inc(px, width) + py * width], gamma),
-                 geometry::pow(
+                {rgba_apply_gamma(data[mod_inc(px, width) + py * width], gamma),
+                 rgba_apply_gamma(
                      data[mod_inc(px, width) + mod_inc(py, height) * width],
                      gamma)},
             };
@@ -570,7 +575,7 @@ struct Texture {
     }
 
     inline geometry::vec3 sample_normal(geometry::vec2 xy) const {
-        auto u01 = sample(xy);
+        auto u01 = sample(xy).rgb();
         auto res = u01 * 2 - 1;
 
         return geometry::norm(geometry::vec3(res.r(), res.g(), res.b()));
@@ -578,15 +583,15 @@ struct Texture {
 
     static Texture load_img(const std::string &path) {
         int width = -1, height = -1, channels = -1;
-        auto img = stbi_load(path.data(), &width, &height, &channels, 3);
+        auto img = stbi_load(path.data(), &width, &height, &channels, 4);
         if (!img) {
             throw std::runtime_error("Failed to load image from " + path);
         }
         Texture res{static_cast<unsigned>(width), static_cast<unsigned>(height),
-                    std::vector<geometry::color3>(width * height)};
+                    std::vector<geometry::color4>(width * height)};
         for (int off = 0, end = width * height; off < end; ++off) {
-            res.data[off] = {img[off * 3] / 255.0f, img[off * 3 + 1] / 255.0f,
-                             img[off * 3 + 2] / 255.0f};
+            res.data[off] = {img[off * 4] / 255.0f, img[off * 4 + 1] / 255.0f,
+                             img[off * 4 + 2] / 255.0f, img[off * 4 + 3] / 255.0f};
         }
         stbi_image_free(img);
         return res;
@@ -594,10 +599,10 @@ struct Texture {
 };
 
 const Texture WHITE_TEXTURE;
-const Texture NORMAL_UP(1, 1, {{0.5f, 0.5f, 1}});
+const Texture NORMAL_UP(1, 1, {{0.5f, 0.5f, 1, 0}});
 
 struct material {
-    color3 color = {1, 1, 1};
+    color4 color = {1, 1, 1, 1};
     color3 emission = {0, 0, 0};
     float roughness = 1.0;
     float metallic = 1.0;
@@ -607,17 +612,17 @@ struct material {
     const Texture *metallic_roughness_tex = &WHITE_TEXTURE;
     const Texture *normal_tex = &NORMAL_UP;
 
-    [[nodiscard]] inline color3 color_at(vec2 tex_coords) const {
+    [[nodiscard]] inline color4 color_at(vec2 tex_coords) const {
         return color * color_tex->sample(tex_coords, 2.2f);
     }
 
     [[nodiscard]] inline color3 emission_at(vec2 tex_coords) const {
-        return emission * emissive_tex->sample(tex_coords, 2.2f);
+        return emission * emissive_tex->sample(tex_coords, 2.2f).rgb();
     }
 
     [[nodiscard]] inline vec2 metallic_roughness_at(vec2 tex_coords) const {
         auto mr = metallic_roughness_tex->sample(tex_coords);
-        return vec2(metallic, roughness) * vec2(mr.r(), mr.g());
+        return vec2(metallic, roughness) * vec2(mr.b(), mr.g());
     }
 
     [[nodiscard]] inline vec3 normal_at(vec2 tex_coords) const {

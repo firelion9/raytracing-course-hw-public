@@ -25,11 +25,7 @@ int main(int argc, char **argv) try {
     unsigned samples = std::strtol(argv[4], nullptr, 10);
 
     Scene scene = parse_gltf_scene(std::filesystem::path(argv[1]), static_cast<float>(width) / height);
-    if constexpr (USE_WHITE_BG) {
-        scene.bg_color = {1, 1, 1};
-    } else {
-        scene.bg_color = {0, 0, 0};
-    }
+    scene.bg_color = {ENV_MAP_INTENSITY, ENV_MAP_INTENSITY, ENV_MAP_INTENSITY};
     if constexpr (USE_ENV_MAP) {
         scene.bg = geometry::Texture::load_img(ENV_MAP_PATH);
     }

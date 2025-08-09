@@ -23,17 +23,17 @@ constexpr float MIN_ROUGHNESS = 0.04f;
  * Weigh of VNDF in multiple importance sampling
  * (cosine-weighted and light sampling both have weight equal to $(1 - [VNDF_factor]) / 2$ ) 
  */
-constexpr float VNDF_factor = 1 / 3.0f;
+constexpr float VNDF_factor = 1.0f / 3;
 
 /** If false, only single-pixel textures are supported */
 constexpr bool USE_TEXTURES = true;
 
 // Next 3 constants setup environment map.
-// [USE_WHITE_BG] = false => env map is black
-// [USE_WHITE_BG] = true, [USE_ENV_MAP] = false => env map is white (intensity = 1.0)
-// [USE_WHITE_BG] = true, [USE_ENV_MAP] = true and [ENV_MAP_PATH] set => 
+// [USE_ENV_MAP] = false => env map is white (with intensity = [ENV_MAP_INTENSITY])
+// [USE_ENV_MAP] = true and [ENV_MAP_PATH] set => 
 //     => env map is RGB image from [ENV_MAP_PATH] (any that is supported by stb_image)
-constexpr bool USE_WHITE_BG = false;
+//        with max intensity = [ENV_MAP_INTENSITY]
+constexpr float ENV_MAP_INTENSITY = 1;
 constexpr bool USE_ENV_MAP = false;
 constexpr char ENV_MAP_PATH[] = "env.hdr";
 
