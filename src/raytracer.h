@@ -7,7 +7,6 @@
 #include "image.h"
 #include "scene.h"
 #include <algorithm>
-#include <array>
 #include <atomic>
 #include <cassert>
 #include <cmath>
@@ -17,7 +16,6 @@
 #include <ostream>
 #include <random>
 #include <thread>
-#include <type_traits>
 #include <variant>
 #include <vector>
 
@@ -201,7 +199,7 @@ struct VNDF_dist {
             2;
         float g1 = 1 / (1 + lambda);
         float dn = 1 / std::numbers::pi_v<float> / roughness / roughness /
-                   (n / geometry::vec3(roughness, roughness, 1)).len2();
+                   pow2((n / geometry::vec3(roughness, roughness, 1)).len2());
         float dv = g1 * std::max(0.0f, geometry::dot(v, n)) * dn / v.z();
         return dv / 4 / geometry::dot(v, n);
     }
@@ -559,7 +557,6 @@ shade(RaytracerThreadContext &context, const geometry::ray &ray,
     auto pos = ray.at(intersection_info.t);
     auto &material = intersection_info.obj->material;
     auto VNDF_dst = VNDF_dist{std::max(material.roughness, MIN_ROUGHNESS)};
-    auto VNDF_factor = 1 / 3.0f;
     auto dir = context.coin(VNDF_factor)
                    ? VNDF_dst.sample(context.rand_gen, ray.dir,
                                      intersection_info.shading_normal)

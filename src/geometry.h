@@ -278,6 +278,10 @@ struct matrix3 {
         }) {   
     }
 
+    [[nodiscard]] constexpr inline matrix3(const vec3 &r1, const vec3 &r2, const vec3 &r3) 
+    : val({r1, r2, r3}) {   
+    }
+
     [[nodiscard]] constexpr inline vec3 apply(const vec3 &vec) const;
 
     [[nodiscard]] constexpr inline matrix3 rs_fast_inv_t() const {

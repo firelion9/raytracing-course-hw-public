@@ -1,6 +1,7 @@
 #ifndef SCENE_H
 #define SCENE_H
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
@@ -18,12 +19,11 @@
 #include <variant>
 #include <vector>
 
+#include "config.h"
 #include "geometry.h"
 #include "json.hpp"
 
 using json = nlohmann::json;
-
-constexpr unsigned DEFAULT_RAY_DEPTH = 8;
 
 template <class T> static inline T typed_read(std::istream &in) {
     T res;
@@ -128,8 +128,8 @@ interpret_accessor(const Json &root,
     return std::span<T>(reinterpret_cast<T *>(buffer.data() + offset), count);
 }
 
-struct unit_t {
-} unit;
+struct unit_t {};
+constexpr inline unit_t unit;
 
 template <class Json>
 static std::variant<std::span<const std::uint8_t>,
@@ -470,6 +470,27 @@ static Scene parse_gltf_scene(const std::filesystem::path &gltf_path,
         for (int node_idx : scene_info["nodes"]) {
             handle_node(node_idx, geometry::matrix4::id());
         }
+    }
+    
+    if (ADD_LIGHT_TRIANGLE) {
+        res.objects.emplace_back();
+        geometry::Object &light_source = res.objects.back();
+        
+        auto &x = res.camera.right;
+        auto &y = res.camera.up;
+        auto &z = res.camera.forward;
+        auto &w = res.camera.position;
+
+        auto &tr = light_source.shape;
+        tr = *reinterpret_cast<const geometry::triangle*>(&LIGHT_TRIANGLE_RELATIVE_POS);
+        tr.a() = w + geometry::transform3(tr.a(), x, y, z);
+        tr.b() = w + geometry::transform3(tr.b(), x, y, z);
+        tr.c() = w + geometry::transform3(tr.c(), x, y, z);
+
+        light_source.material.emission = {LIGHT_TRIANGLE_INTENSITY, LIGHT_TRIANGLE_INTENSITY, LIGHT_TRIANGLE_INTENSITY};
+        std::fill(light_source.attrs.normals.begin(), light_source.attrs.normals.end(), tr.normal());
+        std::fill(light_source.attrs.tex_coords.begin(), light_source.attrs.tex_coords.end(), geometry::vec2(0, 0));
+        std::fill(light_source.attrs.tangents.begin(), light_source.attrs.tangents.end(), geometry::vec3(1, 0, 0));
     }
 
     return res;
